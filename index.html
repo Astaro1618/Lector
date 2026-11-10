@@ -165,7 +165,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 @media (max-width:420px){.icon-btn{width:40px;height:40px}.head-actions{gap:6px}}
 /* celular: o botão Adicionar vira só "+", para a fileira caber na tela (antes empurrava a página para o lado) */
 @media (max-width:520px){.head-actions{flex-wrap:wrap;max-width:100%}.head-actions .add{font-size:0;gap:0;width:44px;height:44px;padding:0;justify-content:center;flex:none}.head-actions .add svg{margin:0}}
-html,body{overflow-x:hidden}
+html,body{overflow-x:clip}
 .brand{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;line-height:1;letter-spacing:-.01em;margin:0}
 .count{color:var(--muted);font-size:14px;margin:6px 0 0}
 .add{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);font-weight:700;padding:11px 16px;border-radius:999px;white-space:nowrap}
@@ -563,7 +563,13 @@ sup.tn{font-family:var(--sans);font-size:.6em;font-weight:700;color:var(--accent
 #luc button{cursor:pointer;background:none;border:0;padding:0}
 #luc :focus-visible{outline:2px solid var(--muted);outline-offset:2px;border-radius:6px}
 #luc svg{display:block}
-#luc .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:14px 22px 6px}
+#luc .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:14px 22px 6px;transition:transform .25s ease}
+#luc .top.oculto{transform:translateY(calc(-100% - 12px))}
+/* pílula discreta: aparece quando a barra de cima se esconde; tocar traz a barra de volta */
+#luc #mini{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:6;transform:translate(-50%,-160%);opacity:0;transition:transform .25s ease,opacity .25s;
+  display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:var(--panel);color:var(--ink);font-weight:700;font-size:.95rem;box-shadow:0 3px 14px rgba(0,0,0,.25)}
+#luc #mini.on{transform:translate(-50%,0);opacity:.94}
+@media (prefers-reduced-motion:reduce){#luc .top,#luc #mini{transition:none}}
 #luc .wrap{max-width:680px;margin:0 auto}
 #luc .bar{display:flex;align-items:center;justify-content:space-between}
 #luc .bar h1{font-size:2rem;font-weight:800;margin:0;letter-spacing:-.02em}
@@ -3166,6 +3172,7 @@ if(location.port==='8765'){
   <div class="go"><input id="go" type="text" enterkeyhint="go" autocomplete="off" spellcheck="false" placeholder="" aria-label="Ir para livro, capítulo ou versículo (ex.: Jo 3,16)"></div>
   <div class="trs" id="trs"></div>
 </div></div>
+<button id="mini" aria-label="Mostrar a barra de cima"><span id="miniTxt"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
 <main class="wrap" id="read"></main>
 
 <button id="edge" aria-label="Abrir livros"><span></span></button>
@@ -3839,6 +3846,14 @@ function render(hl){
   else window.scrollTo(0,0);
   ls.set("luc-pos",POS);
 }
+/* barra de cima: some ao descer a leitura, volta ao subir ou ao tocar na pílula */
+let topoY=0,topoFixo=false;
+function mostraTopo(on){const t=$(".top");if(!t)return;t.classList.toggle("oculto",!on);
+  const m=$("#mini");if(m){m.classList.toggle("on",!on&&window.scrollY>t.offsetHeight);const b=BOOKS[POS.b];$("#miniTxt").textContent=b?b[0]+" "+POS.c:"";}}
+window.addEventListener("scroll",()=>{if(LROOT.hidden)return;const y=window.scrollY,t=$(".top");if(!t)return;
+  if(y<t.offsetHeight)mostraTopo(true);else if(y>topoY+8)mostraTopo(false);else if(y<topoY-24)mostraTopo(true);
+  topoY=y;},{passive:true});
+$("#mini").onclick=()=>mostraTopo(true);
 function scrollToEl(el){window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-$(".top").offsetHeight-12);}
 function step(d){
   let {b,c}=POS;c+=d;
