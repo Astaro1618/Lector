@@ -1074,8 +1074,15 @@ function marcaMoldura(tl){
   // notas de rodapé: do pé para cima, linhas com letra bem menor que a do texto
   {const hs=ls.map(l=>l.h).sort((a,b)=>a-b),med=hs[hs.length>>1];let k=ls.length-1;
    if(num(txt(ls[k]))||ls[k].s[0].classList.contains('lx-pf'))k--;
-   const notas=[];while(k>1&&ls[k].h<med*.86){notas.push(ls[k]);k--;}
-   if(notas.length&&notas.length<ls.length*.6)notas.forEach(l=>l.s.forEach(x=>x.classList.add('lx-nota')));}
+   // linhas pequenas no pé; a nota começa depois do ESPAÇO MAIOR (onde fica o risco separador),
+   // assim uma citação recuada (também em letra menor) logo acima não é confundida com nota
+   const peq=[];while(k>1&&ls[k].h<med*.86){peq.push(ls[k]);k--;}
+   if(peq.length){peq.reverse();const ps=[];for(let i=1;i<peq.length;i++)ps.push(peq[i].t-peq[i-1].t);
+     const passo=ps.length?ps.slice().sort((a,b)=>a-b)[ps.length>>1]:peq[0].h*1.35;
+     let ini=-1;
+     for(let i=peq.length-1;i>=0;i--){const acima=i?peq[i-1]:ls[k];const gap=peq[i].t-acima.t;
+       if(gap>Math.max(passo,peq[i].h*1.25)*1.7){ini=i;break;}}
+     if(ini>=0){const notas=peq.slice(ini);if(notas.length<ls.length*.6&&/^\s*[\d*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]/.test(txt(notas[0])))notas.forEach(l=>l.s.forEach(x=>x.classList.add('lx-nota')));}}}
   // pé: número da página (ou linha curta bem afastada)
   if(num(tn)||(curto(tn)&&tn.length<=25&&gap(lp,ln)>ln.h*1.5))ln.s.forEach(x=>x.classList.add('lx-pf'));
 }
