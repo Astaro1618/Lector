@@ -4,7 +4,7 @@
    - Bibliotecas e ícones: usa a cópia guardada.
    - Fontes do Google: usa a guardada e atualiza em segundo plano.
    Ao mudar arquivos do app, aumente VERSAO para os celulares pegarem a atualização. */
-const VERSAO = 'lector-v32';
+const VERSAO = 'lector-v33';
 // No computador (servidor de teste, sw.js?dev=1) não guarda nada: serve só para os avisos.
 const DEV = new URL(self.location.href).searchParams.has('dev');
 

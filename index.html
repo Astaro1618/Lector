@@ -1276,7 +1276,7 @@ function toggleMark(){
 function goHref(link){const [file,frag]=link.split('#');const sec=cur.map[file]||cur.map[Object.keys(cur.map).find(k=>k.toLowerCase()===file.toLowerCase())];if(!sec)return;let t=sec;if(frag){const el=sec.querySelector('[id="'+CSS.escape(frag)+'"]');if(el)t=el;}scrollToEl(t);}
 
 /* ---------- Painéis ---------- */
-function openSheet(id){$(id).hidden=false;}
+function openSheet(id){$(id).hidden=false;openSheet.t=Date.now();}
 function clearTrMark(){try{document.querySelectorAll('mark.trsel').forEach(unwrap);}catch(e){}}
 function closeSheets(keepMark){const trOpen=!$('#lx-tr').hidden;document.querySelectorAll('.sheet:not(.gate)').forEach(s=>s.hidden=true);if(trCtl){try{trCtl.abort();}catch(e){}trCtl=null;}if(trOpen&&!keepMark)clearTrMark();}
 let tab='toc';
@@ -1407,7 +1407,9 @@ function setZoom(z){if(!cur||!cur.pdf)return;const f=frac();z=Math.max(1,Math.mi
 $('#lx-zm').onclick=()=>setZoom(((cur&&cur.book.zoom)||1)-.25);
 $('#lx-zp').onclick=()=>setZoom(((cur&&cur.book.zoom)||1)+.25);
 $('#lx-range').addEventListener('input',e=>{setFrac(e.target.value/1000);});
-document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target===s)closeSheets();}));
+document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target!==s)return;
+  /* no celular, o toque que abriu a janela (ex.: "Traduzir") termina em cima do fundo dela: não pode fechar na mesma hora */
+  if(Date.now()-(openSheet.t||0)<600)return;closeSheets();}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.querySelector('.sheet:not([hidden])'))closeSheets();else if(cur)closeBook();}});
 document.querySelectorAll('[data-set]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.set;const f=cur?frac():0;S[k]=k==='lh'?parseFloat(b.dataset.v):b.dataset.v;saveSettings();applySettings();if(k==='layout'&&!cur)renderLibrary();if(cur&&k!=='theme')requestAnimationFrame(()=>setFrac(f));}));
 function stepFs(d){const f=cur?frac():0;S.fs=Math.max(14,Math.min(30,S.fs+d));saveSettings();applySettings();if(cur)requestAnimationFrame(()=>setFrac(f));}
