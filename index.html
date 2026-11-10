@@ -198,6 +198,10 @@ body.logado .lib-foot{display:none}
 /* Nós dois: linha do tempo leve (cor só na bolinha e no nome) */
 .hs-top{display:grid;gap:12px;margin:2px 0 4px}
 .ars-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ars-novo{display:block;width:100%;margin-top:8px;font:inherit;font-size:14px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+#lx-hl .actions .esc{flex:none;display:inline-flex;align-items:center;gap:4px;padding:0 14px}
+#lx-hl .actions .esc.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);border-color:var(--accent)}
+#lx-hlescn{font-size:12.5px;font-weight:600}
 .ars-chips button{border:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:13px;padding:5px 11px;border-radius:999px;cursor:pointer}
 .ars-chips button.on{background:var(--accent);color:var(--on-accent);border-color:transparent}
 .ars-top{position:sticky;top:-10px;z-index:2;background:var(--surface);padding:6px 0 10px;display:grid;gap:8px}
@@ -781,9 +785,9 @@ body.bible-mode{background:#1b1a1e}
     <div class="field"><span>Cor</span><div class="seg" id="lx-hlc"><button data-v="y">Amarelo</button><button data-v="g">Verde</button><button data-v="b">Azul</button><button data-v="p">Rosa</button></div></div>
     <div class="field"><span>Nota</span><textarea id="lx-hln" placeholder="Escreva um comentário sobre este trecho"></textarea></div>
     <div class="field ho-conv" id="lx-hlcv" hidden><span>Conversa</span><div class="rx-row"></div><div class="nt-re" hidden></div><div class="ho-resp"><textarea placeholder="Responder…"></textarea><button class="btn">Enviar</button></div></div>
-    <div class="field"><span>Arsenal: serve contra</span><div class="ars-chips" id="lx-hla"></div></div>
-    <div class="field"><span>Tema</span><div class="ars-chips" id="lx-hlt"></div><input id="lx-hltn" list="lx-temas" placeholder="Outro tema (Enter para incluir)" style="margin-top:6px"><datalist id="lx-temas"></datalist></div>
-    <div class="actions"><button class="ghost" id="lx-hlr">Remover destaque</button><button class="btn" id="lx-hls">Salvar</button></div>
+    <div id="lx-hlars" hidden><div class="field"><span>Serve contra</span><div class="ars-chips" id="lx-hla"></div></div>
+    <div class="field"><span>Tema</span><div class="ars-chips" id="lx-hlt"></div><input id="lx-hltn" class="ars-novo" list="lx-temas" placeholder="Outro tema (Enter para incluir)"><datalist id="lx-temas"></datalist></div></div>
+    <div class="actions"><button class="ghost esc" id="lx-hlesc" aria-label="Arsenal: apologética" title="Arsenal"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span id="lx-hlescn"></span></button><button class="ghost" id="lx-hlr">Remover destaque</button><button class="btn" id="lx-hls">Salvar</button></div>
   </div>
 </div>
 
@@ -1290,22 +1294,30 @@ async function sumarioImpresso(){
   const doc=cur.pdf,N=doc.numPages,cache={};
   const linhas=async n=>{if(cache[n])return cache[n];const tc=await (await doc.getPage(n)).getTextContent();const g={};
     for(const it of tc.items){if(!it.str||!it.str.trim())continue;const y=Math.round(it.transform[5]/3);(g[y]=g[y]||[]).push(it);}
-    const ls=Object.keys(g).map(Number).sort((a,b)=>b-a).map(y=>{const its=g[y].sort((a,b)=>a.transform[4]-b.transform[4]);return {x:its[0].transform[4],s:its.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim()};});
+    // junta os pedaços da linha; só põe espaço quando há um vão de verdade ("purgat ó rio" -> "purgatório")
+    const junta=its=>{let s='',fim=null;for(const it of its){const x=it.transform[4],h=Math.abs(it.transform[3])||it.height||10;
+      if(s&&fim!==null&&x-fim>h*.18&&!/\s$/.test(s)&&!/^\s/.test(it.str))s+=' ';s+=it.str;fim=x+(it.width||0);}return s;};
+    const ls=Object.keys(g).map(Number).sort((a,b)=>b-a).map(y=>{const its=g[y].sort((a,b)=>a.transform[4]-b.transform[4]);return {x:its[0].transform[4],s:junta(its).replace(/\s+/g,' ').trim()};});
     return cache[n]=ls;};
   const parse=l=>{const m=l.s.match(/^(.{3,}?)[\s.·…_\-–]+(\d{1,4})$/);if(!m)return null;const t=m[1].replace(/[\s.·…_]+$/,'');if(!/[A-Za-zÀ-ÿ]{3}/.test(t))return null;return {label:t,x:l.x,num:+m[2]};};
   const CAB=/^(sum[áa]rio|[íi]ndice( geral| sistem[áa]tico)?|conte[úu]do|table of contents|contents)\b/i;
-  const ordem=[...Array(Math.min(N,40)).keys()].map(i=>i+1).concat(N>80?[...Array(40).keys()].map(i=>N-39+i):[...Array(Math.max(0,N-40)).keys()].map(i=>i+41));
-  let pags=[],ultimo=-9;
-  for(const n of ordem){const ls=await linhas(n);const es=ls.map(parse).filter(Boolean);
+  // procura o começo do índice nas 40 primeiras páginas (ou nas 40 últimas) e, achando, segue página
+  // por página até ele acabar, por mais longo que seja (o da Suma Teológica tem mais de 100 páginas)
+  let pags=[],ultimo=-9;const L=$('#lx-suml');
+  for(let n=1;n<=N;n++){
+    if(!pags.length&&n>40&&n<N-39)n=N-39;
+    const ls=await linhas(n);const es=ls.map(parse).filter(Boolean);
     const cab=ls.slice(0,5).some(l=>CAB.test(l.s));
-    if(es.length>=4&&(cab||ultimo===n-1)){pags.push(es);ultimo=n;}
-    else if(pags.length&&n>ultimo+1)break;}
+    if(es.length>=4&&(cab||ultimo===n-1)){pags.push(es);ultimo=n;if(L&&pags.length%5===0)L.innerHTML='<p>Lendo o índice do livro… página '+n+'</p>';}
+    else if(pags.length&&n>ultimo+1)break;
+    delete cache[n-3];}
   const ents=pags.flat();if(ents.length<3)return null;
   // nível pela margem esquerda do próprio sumário
   const xs=[...new Set(ents.map(e=>Math.round(e.x/6)))].sort((a,b)=>a-b);
   ents.forEach(e=>e.depth=Math.min(3,xs.indexOf(Math.round(e.x/6))));
   // número impresso -> página do arquivo: rótulos do PDF, ou deslocamento confirmado pelo título na página
   let rot=null;try{rot=await doc.getPageLabels();}catch(e){}
+  if(rot&&rot.every((l,i)=>l===String(i+1)))rot=null;   // rótulos 1, 2, 3... iguais à página do arquivo não dizem nada: confere pelo título
   let off=null;
   if(!rot){const conta={};
     for(const e of ents.filter(e=>e.label.length>=6).slice(0,10)){const alvo=semAcento(e.label).slice(0,14);
@@ -1317,10 +1329,10 @@ async function sumarioImpresso(){
 }
 async function itensSumario(){
   if(cur.book.type!=='pdf'||(cur.toc||[]).length>=3)return (cur.toc||[]).map((t,i)=>({label:t.label,depth:t.depth||0,i}));
-  if(cur.book.sumario)return cur.book.sumario;
+  if(cur.book.sumario&&cur.book.sumarioV===2)return cur.book.sumario;   // v2: índice longo inteiro e página certa
   $('#lx-suml').innerHTML='<p>Procurando o sumário impresso no livro…</p>';
   let s=null;try{s=await sumarioImpresso();}catch(e){}
-  if(s&&s.length){cur.book.sumario=s;put('books',cur.book).catch(()=>{});return s;}
+  if(s&&s.length){cur.book.sumario=s;cur.book.sumarioV=2;put('books',cur.book).catch(()=>{});return s;}
   return (cur.toc||[]).map((t,i)=>({label:t.label,depth:t.depth||0,i}));
 }
 let SUM=[];
@@ -1617,7 +1629,7 @@ function openOutro(uid,id){const h=outrosHL().find(x=>x.uid===uid&&x.id===id);if
   const n=$('#lx-hon');n.hidden=!(h.note&&String(h.note).trim());n.textContent=h.note||'';
   desenhaConversa($('#lx-hocv'),uid+'|'+h.at);desenhaReacoes($('#lx-hocv'),uid+'|'+h.at,true,corDe(sbUid()));openSheet('#lx-ho');}
 function openHL(id){
-  const h=(cur.book.highlights||[]).find(x=>x.id===id);if(!h)return;hlId=id;hlColor=h.color;hlAlvos=[...(h.alvos||[])];hlTemas=[...(h.temas||[])];chipsHL();
+  const h=(cur.book.highlights||[]).find(x=>x.id===id);if(!h)return;hlId=id;hlColor=h.color;hlAlvos=[...(h.alvos||[])];hlTemas=[...(h.temas||[])];$('#lx-hlars').hidden=!(hlAlvos.length||hlTemas.length);chipsHL();
   {const cv=$('#lx-hlcv'),eu=sbUid();cv.hidden=!(eu&&(cur.book.outros||[]).length);if(!cv.hidden){desenhaConversa(cv,eu+'|'+h.at);desenhaReacoes(cv,eu+'|'+h.at,false);}}
   $('#lx-hlq').textContent='“'+h.text+'”';$('#lx-hln').value=h.note||'';
   $('#lx-hlc').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===h.color));
@@ -2462,9 +2474,11 @@ function salvaArs(){ARS.at=Date.now();try{localStorage.setItem('lector-arsenal',
 function recebeArs(e){if(!e||!e.registro||!e.registro.arsenal)return;if((e.atualizado||0)<=(ARS.at||0))return;ARS=Object.assign({objecoes:[],fichas:[],caderno:[]},e.registro.arsenal);ARS.at=e.atualizado;try{localStorage.setItem('lector-arsenal',JSON.stringify(ARS));}catch(x){}}
 // --- marcar no destaque ---
 let hlAlvos=[],hlTemas=[];
+function escHL(){const n=hlAlvos.length+hlTemas.length;$('#lx-hlescn').textContent=n?String(n):'';$('#lx-hlesc').classList.toggle('on',!!n||!$('#lx-hlars').hidden);}
+$('#lx-hlesc').onclick=()=>{const a=$('#lx-hlars');a.hidden=!a.hidden;escHL();if(!a.hidden)a.scrollIntoView({block:'nearest',behavior:'smooth'});};
 function chipsHL(){$('#lx-hla').innerHTML=ALVOS.map(a=>'<button data-a="'+a+'" class="'+(hlAlvos.includes(a)?'on':'')+'">'+a+'</button>').join('');
   const ts=[...new Set(hlTemas.concat(TEMAS_ARS.slice(0,8)))];$('#lx-hlt').innerHTML=ts.map(t=>'<button data-t="'+esc(t)+'" class="'+(hlTemas.includes(t)?'on':'')+'">'+esc(t)+'</button>').join('');
-  $('#lx-temas').innerHTML=TEMAS_ARS.map(t=>'<option value="'+esc(t)+'">').join('');}
+  $('#lx-temas').innerHTML=TEMAS_ARS.map(t=>'<option value="'+esc(t)+'">').join('');escHL();}
 $('#lx-hla').onclick=e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;hlAlvos=hlAlvos.includes(a)?hlAlvos.filter(x=>x!==a):hlAlvos.concat(a);chipsHL();};
 $('#lx-hlt').onclick=e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t;hlTemas=hlTemas.includes(t)?hlTemas.filter(x=>x!==t):hlTemas.concat(t);chipsHL();};
 $('#lx-hltn').addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();const t=e.target.value.trim();if(t&&!hlTemas.includes(t))hlTemas.push(t);e.target.value='';chipsHL();});
