@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lector · resgate</title>
+<style>
+  :root{--bg:#F8F9F6;--ink:#1C2430;--muted:#5D6672;--line:#D3D8D0;--ok:#2F6B4F}
+  @media (prefers-color-scheme:dark){:root{--bg:#171C23;--ink:#D6DAE0;--muted:#8A929D;--line:#28303A;--ok:#6FB08E}}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+  main{max-width:860px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  p{margin:6px 0}
+  .m{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:13.5px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  button{font:inherit;font-weight:600;border:0;border-radius:999px;padding:10px 18px;background:var(--ok);color:#fff;cursor:pointer}
+  h2{font-size:16px;margin:22px 0 4px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Resgate dos dados do Lector</h1>
+  <p class="m">Esta página só <b>lê</b> o que está guardado neste navegador, neste endereço (<span id="org"></span>). Não entra na conta, não sincroniza e não apaga nada.</p>
+  <p><button id="baixar" hidden>Baixar cópia (arquivo .json)</button></p>
+  <div id="out"><p>Lendo…</p></div>
+</main>
+<script>
+(async function(){
+  const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  $('#org').textContent=location.origin;
+  const min=ms=>{const m=Math.round((ms||0)/60000);return m<60?m+' min':Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');};
+  const quando=t=>t?new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+  const totDias=d=>Object.values(d||{}).reduce((a,b)=>a+(+b||0),0);
+  const ontem=d=>{const x=new Date(Date.now()-86400000);const k=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');return (d||{})[k]||0;};
+  // 1) livros guardados neste navegador (sem abrir/criar o banco se ele não existir)
+  let livros=[];
+  try{livros=await new Promise((res)=>{const r=indexedDB.open('lector');let novo=false;
+    r.onupgradeneeded=e=>{novo=true;e.target.transaction.abort();};
+    r.onerror=()=>res([]);r.onblocked=()=>res([]);
+    r.onsuccess=()=>{const db=r.result;if(novo||!db.objectStoreNames.contains('books')){db.close();return res([]);}
+      const q=db.transaction('books').objectStore('books').getAll();q.onsuccess=()=>{db.close();res(q.result||[]);};q.onerror=()=>{db.close();res([]);};};});}catch(e){}
+  // 2) cópias guardadas no localStorage (o "Nós dois" guarda uma foto do cofre)
+  const ls={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(lector|luc-)/.test(k)&&k!=='lector-sessao')ls[k]=localStorage.getItem(k);}}catch(e){}
+  let hist=null;try{hist=ls['lector-hist']?JSON.parse(ls['lector-hist']):null;}catch(e){}
+  let quem=null;try{const s=JSON.parse(localStorage.getItem('lector-sessao')||'null');quem=s&&s.user&&s.user.id;}catch(e){}
+  const pessoal=b=>{const o={};for(const k of ['progress','page','lastRead','status','bookmarks','highlights','zoom','days','pg','startedAt','finishedAt','updatedAt','respostas','reacoes'])if(b[k]!==undefined)o[k]=b[k];return o;};
+  const copia={origem:location.origin,lidoEm:new Date().toISOString(),usuario:quem,
+    livros:livros.map(b=>({id:b.id,title:b.title,author:b.author,dono:b.dono,estado:pessoal(b)})),
+    historico:hist,localStorage:Object.fromEntries(Object.entries(ls).filter(([k])=>k!=='lector-hist'))};
+  let h='';
+  h+='<h2>Livros guardados neste navegador ('+livros.length+')</h2>';
+  if(livros.length){h+='<table><tr><th>Livro</th><th class="n">Marcações</th><th class="n">Notas</th><th class="n">Tempo total</th><th class="n">Ontem</th><th class="n">Progresso</th><th>Última leitura</th></tr>'+
+    livros.sort((a,b)=>(b.lastRead||0)-(a.lastRead||0)).map(b=>'<tr><td>'+esc(b.title)+'</td><td class="n">'+(b.highlights||[]).length+'</td><td class="n">'+(b.highlights||[]).filter(x=>x.note&&String(x.note).trim()).length+'</td><td class="n">'+min(totDias(b.days))+'</td><td class="n">'+min(ontem(b.days))+'</td><td class="n">'+Math.round((b.progress||0)*100)+'%</td><td>'+quando(b.lastRead)+'</td></tr>').join('')+'</table>';}
+  else h+='<p class="m">Nenhum livro guardado neste endereço.</p>';
+  if(hist&&hist.estados){const L={};for(const l of hist.livros||[])L[l.id]=l.meta&&l.meta.title;
+    const meus=hist.estados.filter(e=>!quem||e.user_id===quem);
+    h+='<h2>Foto do cofre guardada pelo "Nós dois" ('+meus.length+' livros seus)</h2><table><tr><th>Livro</th><th class="n">Marcações</th><th class="n">Tempo total</th><th class="n">Ontem</th><th>Última leitura</th></tr>'+
+      meus.map(e=>{const r=e.registro||{};return '<tr><td>'+esc(L[e.livro_id]||e.livro_id)+'</td><td class="n">'+(r.highlights||[]).length+'</td><td class="n">'+min(totDias(r.days))+'</td><td class="n">'+min(ontem(r.days))+'</td><td>'+quando(r.lastRead)+'</td></tr>';}).join('')+'</table>';}
+  else h+='<h2>Foto do cofre do "Nós dois"</h2><p class="m">Não há foto guardada neste endereço.</p>';
+  $('#out').innerHTML=h;
+  const b=$('#baixar');b.hidden=false;
+  b.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(copia,null,1)],{type:'application/json'}));
+    a.download='lector-resgate-'+location.hostname.replace(/[^a-z0-9]+/gi,'-')+'-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';a.click();};
+})();
+</script>
+</body>
+</html>
