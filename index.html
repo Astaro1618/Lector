@@ -2221,7 +2221,7 @@ function aplicaMescla(b,m){
   if(cur&&cur.book.id===b.id&&cur.book!==b){const ids=new Set(m.highlights.map(h=>h.id)),eram=new Set((cur.book.highlights||[]).map(h=>h.id));
     const jump=(m.lastRead||0)>(cur.book.lastRead||0)+60000&&Math.abs((m.progress||0)-(cur.book.progress||0))>.002;
     for(const id of eram)if(!ids.has(id))page.querySelectorAll('mark[data-h="'+id+'"]').forEach(unwrap);
-    Object.assign(cur.book,m);
+    Object.assign(cur.book,mesclaEstado(soEstado(cur.book),m));   // soma também o que está na tela e ainda não foi salvo
     for(const h of m.highlights)if(!eram.has(h.id))try{paintHL(h);}catch(e){}
     if(jump){if(cur.pdf&&m.page)goPage(m.page);else setFrac(m.progress||0);toast('Continuando de onde você parou no outro aparelho');}
     try{updateUI();}catch(e){}}}
@@ -2752,7 +2752,7 @@ $('#lx-libset').onclick=()=>{$('#lx-zf').hidden=true;openSheet('#lx-settings');}
 
 /* ---------- Linha de destaques no menu do livro ---------- */
 function renderMenuHL(b){
-  const hs=sortHL(b.highlights||[]);const el=$('#lx-bmh');
+  const hs=[...(b.highlights||[])].sort((x,y)=>(y.editado||y.at||0)-(x.editado||x.at||0));const el=$('#lx-bmh');   // a mais nova em cima, a mais antiga embaixo
   if(!hs.length){el.innerHTML='';return;}
   el.innerHTML='<h3>Destaques ('+hs.length+')</h3><ol>'+hs.map(h=>'<li data-c="'+h.color+'"><button data-goto="'+h.id+'"><q>'+esc(h.text)+'</q>'+(h.note?'<em>'+esc(h.note)+'</em>':'')+'<small>'+esc([h.label,dataBR(h.at)].filter(Boolean).join(', '))+'</small></button></li>').join('')+'</ol>';
 }
@@ -2768,6 +2768,7 @@ $('#lx-bmh').addEventListener('click',async e=>{
 /* ---------- Ir para página ---------- */
 function flushSync(){for(const id in syncT){if(syncT[id]){clearTimeout(syncT[id]);syncT[id]=null;upChain=upChain.then(()=>pushBook(id)).catch(()=>{});}}}
 window.addEventListener('pagehide',flushSync);
+setInterval(()=>{if(document.hidden||!sbUid())return;try{flushSync();}catch(e){}upChain.then(()=>sbPull()).catch(()=>{});},60000);
 function openJump(){
   if(!cur||page.querySelector('.msg'))return;const pdf=!!cur.pdf;const i=$('#lx-ji');
   $('#lx-jt').textContent=pdf?'Ir para a página':'Ir para uma posição';
@@ -3143,7 +3144,7 @@ if(location.port==='8765'){
   setInterval(async()=>{
     try{const r=await fetch('/__dev/versao',{cache:'no-store'});if(!r.ok)return;const v=await r.text();
       if(v0===null){v0=v;return;}
-      if(v!==v0){v0=v;try{if(cur)await saveProgress();}catch(e){}location.reload();}
+      if(v!==v0){v0=v;try{if(cur)await saveProgress();flushSync();await Promise.race([upChain,new Promise(r=>setTimeout(r,8000))]);}catch(e){}location.reload();}
     }catch(e){}
   },1000);
 }
