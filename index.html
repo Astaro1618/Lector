@@ -892,6 +892,26 @@ body.bible-mode{background:#1b1a1e}
   :root[data-cara="breviario"] .c-grade{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:26px 20px}
   :root[data-cara="breviario"] .c-hoje{position:fixed;inset:0 0 0 auto;width:372px;box-sizing:border-box;margin:0;padding:30px 28px 30px 0;gap:14px;overflow:auto}
 }
+/* ---------- Do dia ---------- */
+.dia-top{padding:4px 0 14px;border-bottom:1px solid var(--line)}
+.dia-top small{display:block;color:var(--muted);font-size:13px}
+.dia-top h3{margin:4px 0 6px;font-family:var(--display);font-weight:600;font-size:24px;line-height:1.15}
+.dia-cor{font-size:13px;color:var(--muted)}.dia-cor i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--c)}
+.dia-santo{padding:14px 0;border-bottom:1px solid var(--line)}
+.dia-santo small,.dia-sec summary small{display:block;font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+.dia-santo div{font-family:var(--serif);font-size:17px;line-height:1.4;margin-top:4px}
+.dia-sec{border-bottom:1px solid var(--line)}
+.dia-sec summary{list-style:none;cursor:pointer;min-height:52px;padding:10px 28px 10px 0;display:flex;flex-direction:column;justify-content:center;position:relative}
+.dia-sec summary::-webkit-details-marker{display:none}
+.dia-sec summary span{font-family:var(--display);font-weight:600;font-size:19px}
+.dia-sec summary::after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:22px;color:var(--muted)}
+.dia-sec[open] summary::after{content:"–"}
+.dia-tx{font-family:var(--serif);font-size:17.5px;line-height:1.65;padding:0 0 14px}
+.dia-tx p{margin:0 0 .8em}.dia-ti{font-style:italic;color:var(--muted)}
+.dia-st{color:var(--muted);padding:18px 0}
+.dia-fonte{font-size:12.5px;color:var(--muted);margin:16px 0 0}.dia-fonte a{color:inherit}
+:root[data-cara="breviario"] .c-lit .ghost{margin-top:14px;color:#fff;border-color:#8FA8CC}
+@media (max-width:899px){:root[data-cara] .head-actions{grid-template-columns:repeat(6,minmax(0,1fr))}:root[data-cara] .head-actions .icon-btn{font-size:10.5px}}
 </style>
 </head>
 <body class="booting">
@@ -904,6 +924,7 @@ body.bible-mode{background:#1b1a1e}
       <p class="count" id="lx-count"></p>
     </div>
     <div class="head-actions">
+      <button class="icon-btn" id="lx-dia-btn" aria-label="Do dia: liturgia, Evangelho e santo" title="Do dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span class="lbl">Do dia</span></button>
       <button class="icon-btn" id="lx-bible" aria-label="Bíblia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg><span class="lbl">Escritura</span></button>
       <button class="icon-btn" id="lx-libset" aria-label="Aparência"><span class="aa" style="font-family:var(--display);font-weight:600;font-size:18px">Aa</span><span class="lbl">Aparência</span></button>
       <button class="icon-btn" id="lx-ars-btn" aria-label="Arsenal: argumentos das suas leituras" title="Arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span class="lbl">Arsenal</span></button>
@@ -1059,6 +1080,12 @@ body.bible-mode{background:#1b1a1e}
   </div>
 </div>
 
+<div class="sheet" id="lx-dia" hidden>
+  <div class="panel tall" role="dialog" aria-label="Do dia">
+    <h2>Do dia</h2>
+    <div id="lx-dial"></div>
+  </div>
+</div>
 <div class="sheet" id="lx-diary" hidden>
   <div class="panel tall" role="dialog" aria-label="Diário de leitura">
     <h2>Diário e metas</h2>
@@ -1189,6 +1216,48 @@ function applySettings(){
   $('#lx-fso').textContent=S.fs+' px';
 }
 
+/* ---------- Do dia: liturgia, leituras, santo e meditação ----------
+   Sempre com internet. O Lector não escreve nada disso: mostra o que já é publicado, com a fonte no fim.
+   Leituras (texto da CNBB): liturgia.up.railway.app · Santo e meditação: Evangelho Quotidiano (evangelizo.org). */
+const DIA_LIT='https://liturgia.up.railway.app/v2/',DIA_EVZ='https://feed.evangelizo.org/v2/reader.php';
+let diaCache=null;
+function diaLimpa(h){const d=new DOMParser().parseFromString('<div>'+h+'</div>','text/html');d.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));
+  return (d.body.textContent||'').replace(/[ \t ]+/g,' ').replace(/ *\n */g,'\n').trim();}
+async function diaBusca(){const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  if(diaCache&&diaCache.k===k)return diaCache;
+  try{const g=JSON.parse(localStorage.getItem('lector-dia')||'null');if(g&&g.k===k&&(g.lit||g.ev)){diaCache=g;return g;}}catch(e){}
+  const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const evz=t=>fetch(DIA_EVZ+'?date='+ymd+'&lang=PT&type='+t).then(r=>r.ok?r.text():'').then(diaLimpa).catch(()=>'');
+  const [lit,santo,ct,ca,c]=await Promise.all([
+    fetch(DIA_LIT+'?dia='+d.getDate()+'&mes='+(d.getMonth()+1)+'&ano='+d.getFullYear()).then(r=>r.ok?r.json():null).then(j=>j&&j.leituras?j:null).catch(()=>null),
+    evz('saint'),evz('comment_t'),evz('comment_a'),evz('comment')]);
+  const o={k,lit,santo,ct,ca,c};
+  if(!lit){o.evRef=await evz('reading_lt&content=GSP');o.ev=await evz('reading&content=GSP');}
+  if(lit||o.ev){diaCache=o;try{localStorage.setItem('lector-dia',JSON.stringify(o));}catch(e){}}
+  return o;}
+function diaP(t){return String(t||'').split(/\n+/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');}
+function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
+async function renderDia(){const el=$('#lx-dial');
+  if(navigator.onLine===false&&!diaCache){el.innerHTML='<p class="dia-st">Sem internet. As leituras do dia precisam de conexão.</p>';return;}
+  if(!diaCache)el.innerHTML='<p class="dia-st">Buscando as leituras de hoje…</p>';
+  const o=await diaBusca(),L=o.lit,loc=liturgia(),um=a=>(a&&a[0])||null;
+  let h='<header class="dia-top" style="--c:'+loc.cor+'"><small>'+dataLonga()+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3>'+(L&&L.cor?'<span class="dia-cor"><i></i>Cor litúrgica: '+esc(String(L.cor).toLowerCase())+'</span>':'')+'</header>';
+  if(!L&&!o.ev&&!o.santo&&!o.c){el.innerHTML=h+'<p class="dia-st">Não consegui buscar as leituras agora. Tente de novo daqui a pouco.</p><button class="ghost" id="lx-dia-de-novo">Tentar de novo</button>';
+    $('#lx-dia-de-novo').onclick=()=>{diaCache=null;renderDia();};return;}
+  const santos=String(o.santo||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  if(santos.length)h+='<section class="dia-santo"><small>'+(santos.length>1?'Santos do dia':'Santo do dia')+'</small>'+santos.map(s=>'<div>'+esc(s)+'</div>').join('')+'</section>';
+  if(L){const ev=um(L.leituras.evangelho),p1=um(L.leituras.primeiraLeitura),sl=um(L.leituras.salmo),p2=um(L.leituras.segundaLeitura);
+    if(ev)h+=diaSec('Evangelho',ev.referencia,(ev.titulo?'<p class="dia-ti">'+esc(ev.titulo)+'</p>':'')+diaP(ev.texto),true);
+    if(p1)h+=diaSec('Primeira leitura',p1.referencia,(p1.titulo?'<p class="dia-ti">'+esc(p1.titulo)+'</p>':'')+diaP(p1.texto));
+    if(sl)h+=diaSec('Salmo',sl.referencia,(sl.refrao?'<p class="dia-ti">℟. '+esc(sl.refrao)+'</p>':'')+diaP(sl.texto));
+    if(p2)h+=diaSec('Segunda leitura',p2.referencia,(p2.titulo?'<p class="dia-ti">'+esc(p2.titulo)+'</p>':'')+diaP(p2.texto));
+    if(L.oracoes&&L.oracoes.coleta)h+=diaSec('Oração do dia','',diaP(L.oracoes.coleta));
+  }else if(o.ev)h+=diaSec('Evangelho',o.evRef,diaP(o.ev),true);
+  if(o.c)h+=diaSec('Meditação',o.ca,(o.ct?'<p class="dia-ti">'+esc(o.ct)+'</p>':'')+diaP(o.c),!L&&!o.ev);
+  h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santo e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>.</p>';
+  el.innerHTML=h;}
+$('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');renderDia();};
+
 /* ---------- Caras do Lector: a mesma estante com outra organização (escolha em Aa > Cara do Lector) ----------
    Cada cara tem um desenho para computador (tela larga) e outro para celular. "Clássica" = a estante de sempre. */
 const CARAS={scriptorium:{f:'Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400'},vigilia:{},
@@ -1229,10 +1298,11 @@ function caraEstante(C,shelf,books,list,card){shelf.dataset.layout='cara';const 
     const rows=[];for(let i=0;i<list.length;i+=20)rows.push(list.slice(i,i+20));
     shelf.innerHTML='<section class="c-sel">'+caraCont(a,a.status==='reading'?'Lendo agora':a.status==='done'?'Lido':'Na estante')+'</section>'+rows.map(r=>'<div class="c-lomb">'+r.map(sp).join('')+'</div>').join('');
   }else if(C==='breviario'){const lit=typeof liturgia==='function'?liturgia():null,uid=typeof sbUid==='function'&&sbUid();
-    shelf.innerHTML='<aside class="c-hoje">'+(lit?'<section class="c-lit"><small>Hoje · '+esc(lit.tempo)+'</small><h3>'+esc(lit.festa||dataLonga())+'</h3>'+(lit.festa?'<p>'+dataLonga()+'</p>':'')+'</section>':'')+
+    shelf.innerHTML='<aside class="c-hoje">'+(lit?'<section class="c-lit"><small>Hoje · '+esc(lit.tempo)+'</small><h3>'+esc(lit.festa||dataLonga())+'</h3>'+(lit.festa?'<p>'+dataLonga()+'</p>':'')+'<button class="ghost" data-vai="lx-dia-btn">Leituras, santo e meditação</button></section>':'')+
       '<section class="c-cont">'+caraCont(a,a.status==='reading'?'Continuar':'Na estante')+'</section><div id="lx-revslot"></div>'+
       (uid?'<section class="c-nos"><small>Nós dois</small><button class="ghost" data-vai="lx-nos-btn">Ver o que cada um fez</button></section>':'')+'</aside><div class="c-grade">'+list.map(card).join('')+'</div>';
     const rv=$('#lx-rev');if(rv)$('#lx-revslot').appendChild(rv);
+    diaBusca().then(o=>{const t=shelf.querySelector('.c-lit h3');if(t&&o&&o.lit&&o.lit.liturgia){t.textContent=o.lit.liturgia;if(!shelf.querySelector('.c-lit p'))t.insertAdjacentHTML('afterend','<p>'+dataLonga()+'</p>');}}).catch(()=>{});
   }
 }
 

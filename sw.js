@@ -4,7 +4,7 @@
    - Bibliotecas e ícones: usa a cópia guardada.
    - Fontes do Google: usa a guardada e atualiza em segundo plano.
    Ao mudar arquivos do app, aumente VERSAO para os celulares pegarem a atualização. */
-const VERSAO = 'lector-v34';
+const VERSAO = 'lector-v35';
 // No computador (servidor de teste, sw.js?dev=1) não guarda nada: serve só para os avisos.
 const DEV = new URL(self.location.href).searchParams.has('dev');
 
@@ -49,7 +49,7 @@ self.addEventListener('fetch', e => {
 
   // Página do app: rede primeiro, cópia guardada se estiver offline
   if (req.mode === 'navigate' && url.origin === location.origin) {
-    e.respondWith(fetch(req).then(r => {
+    e.respondWith(fetch(req.url, { cache: 'no-store' }).then(r => {
       const copy = r.clone(); caches.open(VERSAO).then(c => c.put('index.html', copy)); return r;
     }).catch(() => caches.match('index.html')));
     return;
