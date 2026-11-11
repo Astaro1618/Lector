@@ -966,6 +966,22 @@ body.bible-mode{background:#1b1a1e}
   .dia-sec[open] .dia-tx{animation:lxTroca .32s ease-out}
   #lx-nova{animation:lxEntra .5s cubic-bezier(.22,1,.36,1)}
 }
+.dia-bio{margin-top:2px}.dia-bio summary{list-style:none;cursor:pointer;position:relative;min-height:44px;padding:8px 28px 8px 0;display:flex;align-items:center;font-family:var(--serif);font-size:17px;line-height:1.4}
+.dia-bio summary::-webkit-details-marker{display:none}.dia-bio summary::after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:22px;color:var(--muted)}.dia-bio[open] summary::after{content:"–"}
+.dia-bio .dia-tx{padding-bottom:6px}.dia-mais{margin:10px 0 0;font-size:13px}.dia-mais a{color:var(--muted)}
+/* ---------- Busca, coleções, plano, capitular, papel ---------- */
+.filters .fq{margin-left:auto;display:grid;place-items:center;width:40px;padding:0;color:var(--muted)}.filters .fq svg{width:19px;height:19px}
+.filters .fc{color:var(--muted)}.filters .fc.sel{color:var(--accent);font-weight:700}
+.bq-i{width:100%;box-sizing:border-box;min-height:46px;padding:0 16px;margin:10px 0 6px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit}
+.bq-h{margin:16px 0 6px;font-family:var(--display);font-size:16px;font-weight:600;color:var(--muted)}
+.bq-r{display:block;width:100%;text-align:left;padding:10px 0;border-bottom:1px solid var(--line);color:var(--ink)}
+.bq-r b{display:block;font-family:var(--serif);font-size:17px}.bq-r q{display:block;font-family:var(--serif);font-size:16px;line-height:1.45}.bq-r i{display:block;color:var(--muted);margin-top:4px}.bq-r span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px}
+.ars-tag{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}.ars-tag small{display:block;width:100%;margin:6px 0 2px;font-size:12px;color:var(--muted)}
+.dia-plano{padding:14px 0;border-bottom:1px solid var(--line)}.dia-plano small,.dia-mais2 small{display:block;font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+.dia-plano h4{margin:6px 0 10px;font-family:var(--display);font-weight:600;font-size:19px;line-height:1.25}
+.dia-mais2{padding:14px 0 4px}.dia-mais2 a{display:flex;align-items:center;min-height:44px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+:root[data-capitular="sim"] .flow section.ch p:first-of-type::first-letter{float:left;font-family:var(--display);font-size:3.2em;line-height:.82;padding:.05em .1em 0 0;color:var(--rubric)}
+.reader .r-page{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 </style>
 </head>
 <body class="booting">
@@ -992,6 +1008,7 @@ body.bible-mode{background:#1b1a1e}
     <button data-f="reading">Lendo<small></small></button>
     <button data-f="toread">Para ler<small></small></button>
     <button data-f="done">Lidos<small></small></button>
+    <button class="fq" id="lx-qbtn" aria-label="Buscar na biblioteca" title="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button><button class="fc" id="lx-cbtn">Coleções</button>
   </nav>
 </header>
 <div class="cara-top" id="lx-ctop" hidden></div>
@@ -1069,6 +1086,8 @@ body.bible-mode{background:#1b1a1e}
     <div class="field" id="lx-zf"><span>Zoom do PDF</span>
       <div class="stepper"><button id="lx-zm" aria-label="Diminuir zoom">−</button><output id="lx-zo">100%</output><button id="lx-zp" aria-label="Aumentar zoom">+</button></div>
     </div>
+    <div class="field"><span>Virar a página</span><div class="seg" data-set="virar"><button data-v="sim">Tocando nas bordas</button><button data-v="nao">Só rolando</button></div></div>
+    <div class="field"><span>Letra capitular (EPUB e TXT)</span><div class="seg" data-set="capitular"><button data-v="nao">Não</button><button data-v="sim">Sim</button></div></div>
     <div class="field"><span>Ajuda</span><div class="seg"><button id="lx-diagbtn">Diagnóstico</button></div><p class="note" id="lx-ver" style="margin:8px 0 0"></p></div>
     <p class="note">Tamanho, fonte e entrelinha valem para EPUB e TXT. O zoom vale para PDF. Toque no centro da tela para esconder ou mostrar os controles.</p>
   </div>
@@ -1097,6 +1116,9 @@ body.bible-mode{background:#1b1a1e}
       <div class="seg" id="lx-bms"><button data-v="reading">Lendo</button><button data-v="toread">Para ler</button><button data-v="done">Lido</button></div>
     </div>
     <button class="ghost" id="lx-bmx" style="margin-top:18px;width:100%">Exportar destaques para Word</button>
+    <button class="ghost" id="lx-bmmd" style="margin-top:8px;width:100%">Exportar destaques (Markdown)</button>
+    <button class="ghost" id="lx-bman" style="margin-top:8px;width:100%">Exportar para Anki (cartões)</button>
+    <button class="ghost" id="lx-bmco" style="margin-top:8px;width:100%">Coleções deste livro…</button>
     <button class="danger" id="lx-bmr">Liberar espaço (o histórico fica)</button>
     <button class="danger" id="lx-bmd">Apagar de vez (sem histórico)</button>
   </div>
@@ -1136,6 +1158,20 @@ body.bible-mode{background:#1b1a1e}
   </div>
 </div>
 
+<div class="sheet" id="lx-bq" hidden>
+  <div class="panel tall" role="dialog" aria-label="Buscar na biblioteca">
+    <h2>Buscar</h2>
+    <input id="lx-bqi" class="bq-i" type="search" placeholder="Livro, autor, coleção, destaque ou nota" autocomplete="off">
+    <div id="lx-bqr"></div>
+  </div>
+</div>
+<div class="sheet" id="lx-bc" hidden>
+  <div class="panel" role="dialog" aria-label="Coleções do livro">
+    <h2 id="lx-bct">Coleções</h2>
+    <div class="ars-chips" id="lx-bcl"></div>
+    <input id="lx-bcn" class="bq-i" placeholder="Nova coleção (Enter para incluir)" autocomplete="off">
+  </div>
+</div>
 <div class="sheet" id="lx-diag" hidden>
   <div class="panel tall" role="dialog" aria-label="Diagnóstico">
     <h2>Diagnóstico</h2>
@@ -1251,7 +1287,7 @@ function all(store){if(!db)return Promise.resolve([...mem[store].values()]);retu
 function del(store,id){if(!db){mem[store].delete(id);return Promise.resolve();}return new Promise((res,rej)=>{try{const t=db.transaction(store,'readwrite');t.objectStore(store).delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);}catch(e){rej(e);}});}
 
 /* ---------- Preferências ---------- */
-const S={theme:'auto',fs:19,ff:'serif',lh:1.7,device:'auto',palette:'tema',outros:'sim',layout:'grade',cara:'classica'};
+const S={theme:'auto',fs:19,ff:'serif',lh:1.7,device:'auto',palette:'tema',outros:'sim',layout:'grade',cara:'classica',virar:'sim',capitular:'nao',plano:null};
 try{Object.assign(S,JSON.parse(localStorage.getItem('lector-settings')||'{}'));}catch(e){}
 {const velho={light:'mosteiro',sepia:'vitral',dark:'vigilia'};if(velho[S.theme])S.theme=velho[S.theme];if(!S._v2){S._v2=1;if(S.palette==='martires')S.palette='tema';}}
 const TEMAS=['auto','mosteiro','mariano','vitral','vigilia'];
@@ -1262,12 +1298,12 @@ function saveSettings(soLocal){if(!soLocal)S._at=Date.now();try{localStorage.set
 async function guardaPrefs(){try{if(typeof sbUid!=='function'||!sbUid())return;const {_v2,...p}=S;
   await sbReq('/rest/v1/estados',{method:'POST',headers:SBJ,body:JSON.stringify({livro_id:'__prefs',user_id:sbUid(),registro:{prefs:p},atualizado:S._at||Date.now()})});}catch(e){}}
 function recebePrefs(e){if(!e||!e.registro||!e.registro.prefs)return;if((e.atualizado||0)<=(S._at||0))return;
-  const p=e.registro.prefs;for(const k of ['theme','palette','layout','cara','fs','ff','lh','outros','device'])if(p[k]!==undefined)S[k]=p[k];
+  const p=e.registro.prefs;for(const k of ['theme','palette','layout','cara','virar','capitular','plano','fs','ff','lh','outros','device'])if(p[k]!==undefined)S[k]=p[k];
   S._at=e.atualizado;saveSettings(true);applySettings();if(!cur)renderLibrary();}
 function applySettings(){
   const r=document.documentElement;
   if(!TEMAS.includes(S.theme))S.theme='auto';
-  r.setAttribute('data-tema',S.theme);aplicaCara();
+  r.setAttribute('data-tema',S.theme);aplicaCara();r.setAttribute('data-capitular',S.capitular==='sim'?'sim':'nao');
   const escuro=S.theme==='vigilia'||(S.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
   if(S.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',escuro?'dark':'light');
   r.toggleAttribute('data-escuro',escuro);
@@ -1287,29 +1323,43 @@ function diaLimpa(h){const d=new DOMParser().parseFromString('<div>'+h+'</div>',
   return (d.body.textContent||'').replace(/[ \t ]+/g,' ').replace(/ *\n */g,'\n').trim();}
 async function diaBusca(){const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
   if(diaCache&&diaCache.k===k)return diaCache;
-  try{const g=JSON.parse(localStorage.getItem('lector-dia')||'null');if(g&&g.k===k&&(g.lit||g.ev)){diaCache=g;return g;}}catch(e){}
+  try{const g=JSON.parse(localStorage.getItem('lector-dia')||'null');if(g&&g.k===k&&(g.lit||g.ev)&&g.santos){diaCache=g;return g;}}catch(e){}
   const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   const evz=t=>fetch(DIA_EVZ+'?date='+ymd+'&lang=PT&type='+t).then(r=>r.ok?r.text():'').then(diaLimpa).catch(()=>'');
   const [lit,santo,ct,ca,c]=await Promise.all([
     fetch(DIA_LIT+'?dia='+d.getDate()+'&mes='+(d.getMonth()+1)+'&ano='+d.getFullYear()).then(r=>r.ok?r.json():null).then(j=>j&&j.leituras?j:null).catch(()=>null),
     evz('saint'),evz('comment_t'),evz('comment_a'),evz('comment')]);
   const o={k,lit,santo,ct,ca,c};
+  try{o.santos=await diaSantos(ymd);}catch(e){o.santos=[];}
   if(!lit){o.evRef=await evz('reading_lt&content=GSP');o.ev=await evz('reading&content=GSP');}
   if(lit||o.ev){diaCache=o;try{localStorage.setItem('lector-dia',JSON.stringify(o));}catch(e){}}
   return o;}
 /* tira os números de versículo grudados no texto ("11Aconteceu", "13e gritaram", "3“Se algum"): a referência já está no cabeçalho */
 function diaSemNum(t){return String(t||'').replace(/(^|[^\p{L}\p{N}])\d{1,3}(?=[\p{L}“"‘'«])/gu,(m,q)=>/[.;:!?)”’,]$/.test(q)?q+' ':q).replace(/[ \t]{2,}/g,' ');}
+/* santos do dia: nome (e, quando existe, o código da página com a história). A história vem do Evangelho Quotidiano ao tocar no nome e fica guardada. */
+async function diaSantos(ymd){const h=await (await fetch(DIA_EVZ+'?date='+ymd+'&lang=PT&type=saint')).text();
+  const d=new DOMParser().parseFromString('<div>'+h+'</div>','text/html'),out=[];
+  d.body.firstChild.childNodes.forEach(n=>{
+    if(n.nodeType===1&&n.tagName==='A'){const m=(n.getAttribute('href')||'').match(/id=([0-9a-f-]+)/i),t=n.textContent.replace(/\s+/g,' ').trim();if(t)out.push({nome:t,id:m?m[1]:''});}
+    else String(n.textContent||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).forEach(t=>out.push({nome:t,id:''}));});
+  return out;}
+async function diaBio(id){const k='lector-bio-'+id;try{const g=localStorage.getItem(k);if(g)return g;}catch(e){}
+  const h=await (await fetch(DIA_EVZ.replace('reader.php','display_saint.php')+'?id='+encodeURIComponent(id)+'&language=PT')).text();
+  const d=new DOMParser().parseFromString(h,'text/html');d.querySelectorAll('script,style,title,head').forEach(x=>x.remove());d.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));
+  const L=(d.body.textContent||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).filter(x=>!/^EVANGELIZO$/i.test(x)).slice(1);
+  const t=L.join('\n');try{if(t)localStorage.setItem(k,t);}catch(e){}return t;}
 function diaP(t){return diaSemNum(t).split(/\n+/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');}
 function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
 async function renderDia(){const el=$('#lx-dial');
   if(navigator.onLine===false&&!diaCache){el.innerHTML='<p class="dia-st">Sem internet. As leituras do dia precisam de conexão.</p>';return;}
   if(!diaCache)el.innerHTML='<p class="dia-st">Buscando as leituras de hoje…</p>';
   const o=await diaBusca(),L=o.lit,loc=liturgia(),um=a=>(a&&a[0])||null;
-  let h='<header class="dia-top" style="--c:'+loc.cor+'"><small>'+dataLonga()+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3>'+(L&&L.cor?'<span class="dia-cor"><i></i>Cor litúrgica: '+esc(String(L.cor).toLowerCase())+'</span>':'')+'</header>';
+  let h0='<header class="dia-top" style="--c:'+loc.cor+'"><small>'+dataLonga()+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3>'+(L&&L.cor?'<span class="dia-cor"><i></i>Cor litúrgica: '+esc(String(L.cor).toLowerCase())+'</span>':'')+'</header>';
+  let h=h0+planoHTML();
   if(!L&&!o.ev&&!o.santo&&!o.c){el.innerHTML=h+'<p class="dia-st">Não consegui buscar as leituras agora. Tente de novo daqui a pouco.</p><button class="ghost" id="lx-dia-de-novo">Tentar de novo</button>';
     $('#lx-dia-de-novo').onclick=()=>{diaCache=null;renderDia();};return;}
-  const santos=String(o.santo||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
-  if(santos.length)h+='<section class="dia-santo"><small>'+(santos.length>1?'Santos do dia':'Santo do dia')+'</small>'+santos.map(s=>'<div>'+esc(s)+'</div>').join('')+'</section>';
+  const SS=o.santos&&o.santos.length?o.santos:String(o.santo||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(n=>({nome:n,id:''})),hoje=new Date(),mm=String(hoje.getMonth()+1).padStart(2,'0'),dd=String(hoje.getDate()).padStart(2,'0');
+  if(SS.length)h+='<section class="dia-santo"><small>'+(SS.length>1?'Santos do dia':'Santo do dia')+'</small>'+SS.map(s=>s.id?'<details class="dia-bio" data-id="'+esc(s.id)+'"><summary>'+esc(s.nome)+'</summary><div class="dia-tx"><p class="dia-st">Buscando a história…</p></div></details>':'<div>'+esc(s.nome)+'</div>').join('')+'<p class="dia-mais"><a href="https://www.vaticannews.va/pt/santo-do-dia/'+mm+'/'+dd+'.html" target="_blank" rel="noopener">Mais sobre os santos de hoje no Vatican News</a></p></section>';
   if(L){const ev=um(L.leituras.evangelho),p1=um(L.leituras.primeiraLeitura),sl=um(L.leituras.salmo),p2=um(L.leituras.segundaLeitura);
     if(ev)h+=diaSec('Evangelho',ev.referencia,(ev.titulo?'<p class="dia-ti">'+esc(ev.titulo)+'</p>':'')+diaP(ev.texto),true);
     if(p1)h+=diaSec('Primeira leitura',p1.referencia,(p1.titulo?'<p class="dia-ti">'+esc(p1.titulo)+'</p>':'')+diaP(p1.texto));
@@ -1318,8 +1368,12 @@ async function renderDia(){const el=$('#lx-dial');
     if(L.oracoes&&L.oracoes.coleta)h+=diaSec('Oração do dia','',diaP(L.oracoes.coleta));
   }else if(o.ev)h+=diaSec('Evangelho',o.evRef,diaP(o.ev),true);
   if(o.c)h+=diaSec('Meditação',o.ca,(o.ct?'<p class="dia-ti">'+esc(o.ct)+'</p>':'')+diaP(o.c),!L&&!o.ev);
-  h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santo e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>.</p>';
-  el.innerHTML=h;}
+  h+='<section class="dia-mais2"><small>Mais para hoje</small><a href="https://www.vaticannews.va/pt/palavra-do-dia.html" target="_blank" rel="noopener">Palavra do dia e homilia · Vatican News</a><a href="https://liturgia.cancaonova.com/pb/" target="_blank" rel="noopener">Liturgia diária · Canção Nova</a><a href="https://www.cnbb.org.br/liturgia-diaria/" target="_blank" rel="noopener">Liturgia diária · CNBB</a><p class="note" style="margin:8px 0 0">As homilias são dos seus autores: o Lector abre o site deles.</p></section>';
+  h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santos, histórias e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>.</p>';
+  el.innerHTML=h;
+  el.querySelectorAll('details.dia-bio').forEach(dt=>dt.addEventListener('toggle',async()=>{if(!dt.open||dt.dataset.ok)return;dt.dataset.ok='1';const box=dt.querySelector('.dia-tx');
+    try{const t=await diaBio(dt.dataset.id);box.innerHTML=t?t.split(/\n+/).map(x=>'<p>'+esc(x)+'</p>').join(''):'<p class="dia-st">Não encontrei a história agora.</p>';}
+    catch(e){dt.dataset.ok='';box.innerHTML='<p class="dia-st">Não consegui buscar agora. Toque de novo.</p>';}}));}
 $('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');renderDia();};
 
 /* ---------- Diagnóstico e versão: o app guarda os últimos avisos e erros para você poder ver (Aa > Diagnóstico) ---------- */
@@ -1351,6 +1405,73 @@ if('serviceWorker' in navigator){const tinha=!!navigator.serviceWorker.controlle
   const confere=()=>navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)confere();});setInterval(confere,30*60*1000);}
 
+/* ---------- Biblioteca: busca em tudo, coleções e exportação dos destaques ---------- */
+let colSel='';
+const nrmB=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+async function colecoes(){const m={};for(const b of await all('books'))for(const c of b.cols||[])m[c]=(m[c]||0)+1;return m;}
+async function abreBusca(){closeSheets();openSheet('#lx-bq');$('#lx-bqi').value='';await desenhaBusca();setTimeout(()=>{try{$('#lx-bqi').focus();}catch(e){}},350);}
+async function desenhaBusca(){const raw=$('#lx-bqi').value.trim(),q=nrmB(raw),el=$('#lx-bqr'),bs=await all('books');let h='';
+  if(!q){const cs=await colecoes(),ks=Object.keys(cs).sort((a,b)=>a.localeCompare(b));
+    el.innerHTML='<p class="note">Procura em títulos, autores, coleções, destaques e anotações de todos os livros.</p><h3 class="bq-h">Coleções</h3>'+(ks.length?'<div class="ars-chips"><button data-col="" class="'+(colSel?'':'on')+'">Todos os livros</button>'+ks.map(k=>'<button data-col="'+esc(k)+'" class="'+(colSel===k?'on':'')+'">'+esc(k)+' <small>'+cs[k]+'</small></button>').join('')+'</div>':'<p class="note">Nenhuma coleção ainda. No menu ⋮ de um livro, toque em “Coleções deste livro…” para criar a primeira (por exemplo: Apologética, Filosofia, Espiritualidade).</p>');return;}
+  const livros=bs.filter(b=>nrmB([b.title,b.author,(b.cols||[]).join(' ')].join(' ')).includes(q)).slice(0,20),ach=[];
+  for(const b of bs)for(const hl of b.highlights||[]){if(ach.length>=40)break;if(nrmB((hl.text||'')+' '+(hl.note||'')+' '+(hl.temas||[]).join(' ')).includes(q))ach.push({b,h:hl});}
+  if(livros.length)h+='<h3 class="bq-h">Livros</h3>'+livros.map(b=>'<button class="bq-r" data-open="'+b.id+'"><b>'+esc(b.title)+'</b><span>'+esc(b.author||'')+'</span></button>').join('');
+  if(ach.length)h+='<h3 class="bq-h">Nos destaques e anotações</h3>'+ach.map(x=>'<button class="bq-r" data-hl="'+x.b.id+'|'+x.h.id+'"><q>'+esc(String(x.h.text||'').trim().slice(0,220))+'</q>'+(x.h.note?'<i>'+esc(x.h.note)+'</i>':'')+'<span>'+esc(citaDe(x.b,x.h))+'</span></button>').join('');
+  el.innerHTML=h||'<p class="dia-st">Nada encontrado para “'+esc(raw)+'”.</p>';}
+$('#lx-qbtn').onclick=abreBusca;
+$('#lx-cbtn').onclick=()=>{if(colSel){colSel='';renderLibrary();}else abreBusca();};
+$('#lx-bqi').addEventListener('input',()=>{clearTimeout(desenhaBusca.T);desenhaBusca.T=setTimeout(desenhaBusca,160);});
+$('#lx-bqr').addEventListener('click',async e=>{
+  const c=e.target.closest('[data-col]');if(c){colSel=c.dataset.col;closeSheets();renderLibrary();return;}
+  const o=e.target.closest('[data-open]');if(o){closeSheets();openBook(o.dataset.open);return;}
+  const hh=e.target.closest('[data-hl]');if(hh){const [bid,hid]=hh.dataset.hl.split('|');closeSheets();await openBook(bid);
+    setTimeout(()=>{const mk=page.querySelector('mark[data-h="'+hid+'"]');if(mk)mk.scrollIntoView({block:'center'});else{const h3=cur&&(cur.book.highlights||[]).find(y=>y.id===hid);if(h3&&/^p\d+$/.test(h3.key||''))goPage(+h3.key.slice(1));}},900);}});
+/* coleções de um livro */
+let colLivro=null;
+async function desenhaColecoes(){const b=await get('books',colLivro);if(!b)return;const cs=await colecoes(),todas=[...new Set(Object.keys(cs).concat(b.cols||[]))].sort((x,y)=>x.localeCompare(y));
+  $('#lx-bcl').innerHTML=todas.map(k=>'<button data-k="'+esc(k)+'" class="'+((b.cols||[]).includes(k)?'on':'')+'">'+esc(k)+'</button>').join('')||'<p class="note">Ainda não há coleções. Escreva o nome da primeira abaixo.</p>';}
+async function abreColecoes(id){const b=await get('books',id);if(!b)return;colLivro=id;$('#lx-bct').textContent='Coleções de “'+b.title+'”';await desenhaColecoes();closeSheets();openSheet('#lx-bc');}
+$('#lx-bcl').onclick=async e=>{const x=e.target.closest('button[data-k]');if(!x)return;const b=await get('books',colLivro),k=x.dataset.k;b.cols=(b.cols||[]).includes(k)?b.cols.filter(y=>y!==k):(b.cols||[]).concat(k);await put('books',b);await desenhaColecoes();renderLibrary();};
+$('#lx-bcn').addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();const t=e.target.value.trim().slice(0,30);if(!t)return;const b=await get('books',colLivro);b.cols=[...new Set((b.cols||[]).concat(t))];await put('books',b);e.target.value='';await desenhaColecoes();renderLibrary();});
+$('#lx-bmco').onclick=()=>{if(menuId)abreColecoes(menuId);};
+/* exportar destaques: Markdown e Anki */
+function mdItem(h,ref){const tags=(h.alvos||[]).map(a=>'contra '+a).concat(h.temas||[]);
+  return '\n> '+String(h.text||'').trim().replace(/\n+/g,'\n> ')+'\n'+(h.note&&String(h.note).trim()?'\n**Nota:** '+String(h.note).trim()+'\n':'')+'\n— '+ref+(tags.length?'  \n`'+tags.join('` `')+'`':'')+'\n';}
+function exportaMD(titulo,lista){if(!lista.length){toast('Nada para exportar');return;}let md='# '+titulo+'\n\nExportado do Lector em '+dataBR(Date.now())+' ('+lista.length+')\n';for(const x of lista)md+=mdItem(x.h,x.cita);return saveFile(safeName(titulo)+'.md',md,true);}
+$('#lx-bmmd').onclick=async()=>{const b=await get('books',menuId);if(!b)return;const hs=sortHL(b.highlights||[]);if(!hs.length){toast('Este livro ainda não tem destaques');return;}
+  const autor=citeAuthor(b)||b.author||'';let md='# '+b.title+'\n'+(autor?'*'+autor+'*\n':'')+'\nDestaques exportados do Lector em '+dataBR(Date.now())+' ('+hs.length+')\n',g=null;
+  for(const h of hs){const gr=h.label||'';if(gr&&gr!==g){md+='\n## '+gr+'\n';g=gr;}md+=mdItem(h,[autor,b.title,hlLocal(b,h)].filter(Boolean).join(', '));}
+  saveFile(safeName(b.title)+' - destaques.md',md,true);};
+$('#lx-bman').onclick=async()=>{const b=await get('books',menuId);if(!b)return;const hs=sortHL(b.highlights||[]);if(!hs.length){toast('Este livro ainda não tem destaques');return;}
+  const autor=citeAuthor(b)||b.author||'',h2=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\t/g,' ').replace(/\n+/g,'<br>');
+  const linhas=hs.map(h=>{const ref=[autor,b.title,hlLocal(b,h)].filter(Boolean).join(', ');return h2(String(h.text||'').trim())+'\t'+(h.note&&String(h.note).trim()?h2(h.note)+'<br><br>':'')+'<i>'+h2(ref)+'</i>';});
+  saveFile(safeName(b.title)+' - anki.txt','#separator:tab\n#html:true\n'+linhas.join('\n')+'\n',true);toast('No Anki: Arquivo > Importar, e escolha este arquivo');};
+/* ---------- Planos de leitura: a Bíblia por partes, no seu ritmo (avança quando você lê; não cobra dia perdido) ---------- */
+const PLANOS=[{id:'ev',nome:'Os quatro Evangelhos',dias:30,livros:['Mt','Mc','Lc','Jo']},{id:'nt',nome:'Novo Testamento',dias:90,de:'Mt'},{id:'sl',nome:'Salmos',dias:30,livros:['Sl']},
+  {id:'sab',nome:'Livros sapienciais (Pr, Ecl, Sb, Eclo)',dias:60,livros:['Pr','Ecl','Sb','Eclo']},{id:'ano',nome:'A Bíblia inteira',dias:365,todos:true}];
+function planoCaps(p){const I=window.lucInfo;if(!I)return[];const ab=I.BOOKS.map(b=>b[0]),todos=ab.map((_,i)=>i);
+  const ids=p.todos?todos:p.de?todos.filter(i=>i>=ab.indexOf(p.de)):p.livros.map(x=>ab.indexOf(x)).filter(i=>i>=0),out=[];
+  for(const i of ids)for(let c=1;c<=I.CH[i];c++)out.push([i,c]);return out;}
+function planoDia(p,d){const L=planoCaps(p),T=L.length,a=Math.floor(d*T/p.dias),z=Math.floor((d+1)*T/p.dias);return L.slice(a,Math.max(a+1,z));}
+function planoRot(tr){const I=window.lucInfo,g=[];for(const [b,c] of tr){const l=g[g.length-1];if(l&&l.b===b&&c===l.z+1)l.z=c;else g.push({b,a:c,z:c});}return g.map(x=>I.BOOKS[x.b][0]+' '+(x.a===x.z?x.a:x.a+'–'+x.z)).join(' · ');}
+function planoHTML(){if(!window.lucInfo)return '';const sp=S.plano,p=sp&&PLANOS.find(x=>x.id===sp.id);
+  if(!p)return '<section class="dia-plano"><small>Plano de leitura</small><p class="note" style="margin:6px 0 10px">Leia a Bíblia por partes pequenas, no seu ritmo. O plano espera por você: não cobra os dias perdidos.</p><div class="seg">'+PLANOS.map(x=>'<button data-plano="'+x.id+'">'+esc(x.nome)+' · '+x.dias+' dias</button>').join('')+'</div></section>';
+  const fei=new Set(sp.fei||[]);let d=0;while(fei.has(d)&&d<p.dias)d++;
+  if(d>=p.dias)return '<section class="dia-plano"><small>Plano de leitura · '+esc(p.nome)+'</small><h4>Plano concluído. Deus seja louvado!</h4><div class="seg"><button data-plano-fim="1">Escolher outro plano</button></div></section>';
+  return '<section class="dia-plano"><small>Plano de leitura · '+esc(p.nome)+'</small><h4>Leitura '+(d+1)+' de '+p.dias+': '+esc(planoRot(planoDia(p,d)))+'</h4><div class="gbar"><i style="width:'+Math.round(fei.size/p.dias*100)+'%"></i></div><div class="seg" style="margin-top:10px"><button data-plano-abre="'+d+'">Abrir na Escritura</button><button data-plano-ok="'+d+'">Marcar como lida</button><button data-plano-fim="1">Trocar de plano</button></div></section>';}
+$('#lx-dial').addEventListener('click',e=>{const b=e.target.closest('[data-plano],[data-plano-ok],[data-plano-abre],[data-plano-fim]');if(!b)return;
+  if(b.dataset.plano)S.plano={id:b.dataset.plano,ini:dayKey(Date.now()),fei:[]};
+  else if(b.dataset.planoFim)S.plano=null;
+  else if(b.dataset.planoOk!==undefined){S.plano.fei=[...new Set((S.plano.fei||[]).concat(+b.dataset.planoOk))];toast('Leitura marcada. Que o Senhor abençoe.');}
+  else if(b.dataset.planoAbre!==undefined){const p=PLANOS.find(x=>x.id===S.plano.id),tr=planoDia(p,+b.dataset.planoAbre);closeSheets();window.lucInfo.ir(tr[0][0],tr[0][1]);return;}
+  saveSettings();renderDia();});
+
+/* Arsenal: marcar contra quem o trecho serve e o tema, sem sair da tela */
+$('#lx-arsc').addEventListener('click',async e=>{const b=e.target.closest('button[data-ac],button[data-tc]');if(!b)return;const cd=b.closest('[data-k]');if(!cd)return;
+  const i=cd.dataset.k.indexOf('|'),bid=cd.dataset.k.slice(0,i),hid=cd.dataset.k.slice(i+1),bk=await get('books',bid),h=bk&&(bk.highlights||[]).find(y=>y.id===hid);if(!h)return;
+  if(b.dataset.ac){const a=b.dataset.ac;h.alvos=(h.alvos||[]).includes(a)?h.alvos.filter(y=>y!==a):(h.alvos||[]).concat(a);}
+  else{const t=b.dataset.tc;h.temas=(h.temas||[]).includes(t)?h.temas.filter(y=>y!==t):(h.temas||[]).concat(t);}
+  await put('books',bk);desenhaArs();});
 /* ---------- Caras do Lector: a mesma estante com outra organização (escolha em Aa > Cara do Lector) ----------
    Cada cara tem um desenho para computador (tela larga) e outro para celular. "Clássica" = a estante de sempre. */
 const CARAS={scriptorium:{f:'Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400'},vigilia:{},
@@ -1566,12 +1687,13 @@ async function renderLibrary(){
   /* Bíblias ficam só na seção da cruz, não na estante */
   const books=(await all('books')).filter(b=>!/b[ií]blia/i.test((b.title||'')+' '+(b.file||b.name||''))).sort((a,b)=>(b.lastRead||b.added)-(a.lastRead||a.added));
   const n={all:books.length,reading:0,toread:0,done:0};books.forEach(b=>n[b.status]=(n[b.status]||0)+1);
-  document.querySelectorAll('#lx-filters button').forEach(b=>{b.classList.toggle('on',b.dataset.f===filter);b.querySelector('small').textContent=n[b.dataset.f]||'';});
+  document.querySelectorAll('#lx-filters button[data-f]').forEach(b=>{b.classList.toggle('on',b.dataset.f===filter);b.querySelector('small').textContent=n[b.dataset.f]||'';});
   $('#lx-count').textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'Sua biblioteca de bolso';
-  const list=filter==='all'?books:books.filter(b=>b.status===filter);
+  const list0=filter==='all'?books:books.filter(b=>b.status===filter),list=colSel?list0.filter(b=>(b.cols||[]).includes(colSel)):list0;
+  {const cb=$('#lx-cbtn');if(cb){cb.textContent=colSel?'Coleção: '+colSel+' ✕':'Coleções';cb.classList.toggle('sel',!!colSel);}}
   const shelf=$('#lx-shelf');mostraCofre();const C=caraAtiva();caraTopo(C,books);
   {const chave=filter+'|'+(S.layout||'')+'|'+(S.cara||'');if(renderLibrary.k!==chave){renderLibrary.k=chave;shelf.classList.remove('entra');void shelf.offsetWidth;shelf.classList.add('entra');}}
-  if(!books.length){shelf.innerHTML='<div class="empty"><h2>A estante está vazia</h2><p>Adicione um livro em EPUB, PDF ou TXT que esteja no seu aparelho.</p><button class="add" data-act="add">Adicionar livro</button></div>';return;}
+  if(!books.length){shelf.innerHTML='<div class="empty"><h2>Sua estante espera o primeiro livro</h2><p>Traga um EPUB, PDF ou TXT do seu aparelho. Ele fica guardado aqui e acompanha você.</p><button class="add" data-act="add">Adicionar livro</button></div>';return;}
   if(!list.length){shelf.innerHTML='<div class="empty"><p>Nenhum livro em “'+esc(document.querySelector('#lx-filters .on').firstChild.textContent)+'”.</p></div>';return;}
   const locais=new Set(await chavesArquivos());
   const card=b=>{
@@ -1746,7 +1868,7 @@ async function openMenu(id,edit){
   $('#lx-bmt').textContent=b.title;$('#lx-et').value=b.title||'';$('#lx-ea').value=b.author||'';$('#lx-eh').value=b.honor||'';const ni=needsInfo(b);$('#lx-ed').open=!!edit||ni;$('#lx-eds').textContent=ni?'⚠ Defina o título e o autor (usados nas citações)':'Editar título e autor';
   $('#lx-bmm').textContent=[b.author,b.type.toUpperCase(),b.size?mb(b.size):'',b.pages?b.pages+' páginas':''].filter(Boolean).join(', ');
   $('#lx-bms').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===b.status));
-  showWhen(b);renderMenuHL(b);  const n=(b.highlights||[]).length;$('#lx-bmx').hidden=!n;$('#lx-bmx').textContent='Exportar destaques ('+n+')';
+  showWhen(b);renderMenuHL(b);  const n=(b.highlights||[]).length;$('#lx-bmx').hidden=!n;$('#lx-bmx').textContent='Exportar destaques ('+n+')';$('#lx-bmmd').hidden=!n;$('#lx-bman').hidden=!n;
   const r=$('#lx-bmr');r.classList.remove('armed');r.textContent='Liberar espaço (o histórico fica)';
   const rd=$('#lx-bmd');rd.classList.remove('armed');rd.textContent='Apagar de vez (sem histórico)';
   openSheet('#lx-bookmenu');
@@ -1758,7 +1880,7 @@ $('#lx-addf').onclick=()=>{closeSheets();$('#lx-file').click();};
 $('#lx-addd').onclick=()=>{closeSheets();$('#lx-dir').click();};
 $('#lx-dir').onchange=e=>{const f=[...e.target.files].filter(x=>/\.(epub|pdf|txt)$/i.test(x.name));e.target.value='';if(f.length){toast(f.length===1?'1 livro encontrado':f.length+' livros encontrados');addFiles(f);}else toast('Nenhum EPUB, PDF ou TXT nesta pasta');};
 $('#lx-file').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)addFiles(f);};
-$('#lx-filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;renderLibrary();};
+$('#lx-filters').onclick=e=>{const b=e.target.closest('button');if(!b||!b.dataset.f)return;filter=b.dataset.f;renderLibrary();};
 $('#lx-shelf').onclick=e=>{const o=e.target.closest('[data-open]'),m=e.target.closest('[data-menu]'),a=e.target.closest('[data-act="add"]'),sp=e.target.closest('[data-sel]'),v=e.target.closest('[data-vai]');if(m)openMenu(m.dataset.menu,!!m.dataset.edit);else if(o){const rc=o.getBoundingClientRect();window.__capa=rc.width>20&&rc.height>20?rc:null;openBook(o.dataset.open);}else if(a)openSheet('#lx-addsheet');else if(sp){if(sp.classList.contains('on'))openBook(sp.dataset.sel);else{caraSel=sp.dataset.sel;renderLibrary();}}else if(v){const x=document.getElementById(v.dataset.vai);if(x)x.click();}};
 $('#lx-ctop').onclick=$('#lx-shelf').onclick;
 $('#lx-back').onclick=closeBook;
@@ -1827,7 +1949,7 @@ $('#lx-suml').addEventListener('click',async e=>{const b=e.target.closest('[data
   if(t.page)goPage(t.page);else if(t.i!==undefined){const it=cur.toc[t.i];if(cur.book.type==='pdf'){const n=await pdfDestPage(it.dest);if(n)goPage(n);}else goHref(it.href);}});
 document.addEventListener('click',e=>{const dd=$('#lx-sum');if(!dd.hidden&&!e.target.closest('#lx-sum')&&!e.target.closest('#lx-rtitle'))dd.hidden=true;},true);
 page.addEventListener('scroll',()=>{if(!cur)return;lastAct=Date.now();tick();contaPaginas();updateUI();clearTimeout(saveT);saveT=setTimeout(saveProgress,300);},{passive:true});
-page.addEventListener('click',e=>{const mo=e.target.closest('mark.hl-o');if(mo&&!e.target.closest('mark.hl')&&getSel().isCollapsed&&S.outros!=='nao'){e.preventDefault();openOutro(mo.dataset.o,mo.dataset.h);return;}const mk=e.target.closest('mark.hl');if(mk&&getSel().isCollapsed){e.preventDefault();openHL(mk.dataset.h);return;}const a=e.target.closest('a[data-link]');if(!a){const r=page.getBoundingClientRect();const x=(e.clientX-r.left)/r.width;if(x>.25&&x<.75&&getSel().isCollapsed)toggleFocus();return;}e.preventDefault();goHref(a.dataset.link);});
+page.addEventListener('click',e=>{const mo=e.target.closest('mark.hl-o');if(mo&&!e.target.closest('mark.hl')&&getSel().isCollapsed&&S.outros!=='nao'){e.preventDefault();openOutro(mo.dataset.o,mo.dataset.h);return;}const mk=e.target.closest('mark.hl');if(mk&&getSel().isCollapsed){e.preventDefault();openHL(mk.dataset.h);return;}const a=e.target.closest('a[data-link]');if(!a){const r=page.getBoundingClientRect();const x=(e.clientX-r.left)/r.width;if(getSel().isCollapsed){if(x>.25&&x<.75)toggleFocus();else if(S.virar!=='nao'&&!e.target.closest('mark,button'))page.scrollBy({top:(x<.5?-1:1)*Math.round(page.clientHeight*.88),behavior:'smooth'});}return;}e.preventDefault();goHref(a.dataset.link);});
 let focusHint=false;
 function toggleFocus(){const R=$('#lx-reader');R.classList.toggle('focus');}
 /* o leitor cresce a partir da capa que foi tocada (ou aparece suave, se não houver capa) */
@@ -3071,21 +3193,23 @@ $('#lx-hltn').addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.prevent
 // --- todos os trechos (de todos os livros) ---
 function citaDe(b,h){const loc=hlLocal(b,h);return [citeAuthor(b)||b.author,b.title,loc].filter(Boolean).join(', ');}
 async function trechosArs(){const out=[];for(const b of await all('books'))for(const h of b.highlights||[])out.push({b,h,cita:citaDe(b,h)});return out;}
+const chipsCard=x=>'<div class="ars-chips ars-tag"><small>Serve contra</small>'+ALVOS.map(a=>'<button data-ac="'+a+'" class="'+((x.h.alvos||[]).includes(a)?'on':'')+'">'+a+'</button>').join('')+'<small>Tema</small>'+[...new Set((x.h.temas||[]).concat(TEMAS_ARS))].map(t=>'<button data-tc="'+esc(t)+'" class="'+((x.h.temas||[]).includes(t)?'on':'')+'">'+esc(t)+'</button>').join('')+'</div>';
 const textoZap=x=>'“'+String(x.h.text||'').trim()+'”\n— '+x.cita;
-let ARS_ABA='tre',ARS_ALVO='',ARS_TODOS=false,ARS_SEL=new Set(),ARS_LISTA=[];
+let ARS_TAG='',ARS_ABA='tre',ARS_ALVO='',ARS_TODOS=true,ARS_SEL=new Set(),ARS_LISTA=[];
 async function abreArsenal(aba){if(aba)ARS_ABA=aba;$('#lx-ars').hidden=false;$('#lx-arsa').innerHTML=['Todos'].concat(ALVOS).map(a=>'<button data-a="'+(a==='Todos'?'':a)+'" class="'+((a==='Todos'?'':a)===ARS_ALVO?'on':'')+'">'+a+'</button>').join('');await desenhaArs();}
 async function desenhaArs(){const q=nrm($('#lx-arsq').value),el=$('#lx-arsc');
   $('#lx-arst').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===ARS_ABA));
   const todos=await trechosArs();
   const casa=x=>(!ARS_ALVO||(x.h.alvos||[]).includes(ARS_ALVO))&&(!q||nrm(x.h.text+' '+(x.h.note||'')+' '+(x.h.temas||[]).join(' ')+' '+x.cita).includes(q));
-  const card=(x,extra)=>'<div class="ars-c'+(ARS_SEL.has(x.b.id+'|'+x.h.id)?' sel':'')+'" data-k="'+x.b.id+'|'+x.h.id+'"><q>'+esc(String(x.h.text||'').trim())+'</q>'+(x.h.note?'<div class="ci"><i>'+esc(x.h.note)+'</i></div>':'')+'<div class="ci">'+esc(x.cita)+'</div>'+((x.h.alvos||[]).length||(x.h.temas||[]).length?'<div class="tg">'+esc((x.h.alvos||[]).map(a=>'contra '+a).concat(x.h.temas||[]).join(' · '))+'</div>':'')+'<div class="ac"><button data-c="zap">Copiar</button><button data-c="sel">'+(ARS_SEL.has(x.b.id+'|'+x.h.id)?'Desmarcar':'Selecionar')+'</button><button data-c="cad">→ Caderno</button><button data-c="abre">Abrir no livro</button>'+(extra||'')+'</div></div>';
+  const card=(x,extra)=>'<div class="ars-c'+(ARS_SEL.has(x.b.id+'|'+x.h.id)?' sel':'')+'" data-k="'+x.b.id+'|'+x.h.id+'"><q>'+esc(String(x.h.text||'').trim())+'</q>'+(x.h.note?'<div class="ci"><i>'+esc(x.h.note)+'</i></div>':'')+'<div class="ci">'+esc(x.cita)+'</div>'+((x.h.alvos||[]).length||(x.h.temas||[]).length?'<div class="tg">'+esc((x.h.alvos||[]).map(a=>'contra '+a).concat(x.h.temas||[]).join(' · '))+'</div>':'')+'<div class="ac"><button data-c="zap">Copiar</button><button data-c="sel">'+(ARS_SEL.has(x.b.id+'|'+x.h.id)?'Desmarcar':'Selecionar')+'</button><button data-c="tag">'+(ARS_TAG===x.b.id+'|'+x.h.id?'Fechar':'Classificar')+'</button><button data-c="cad">→ Caderno</button><button data-c="abre">Abrir no livro</button>'+(extra||'')+'</div>'+(ARS_TAG===x.b.id+'|'+x.h.id?chipsCard(x):'')+'</div>';
   let h='';
   if(ARS_ABA==='tre'){
     const lista=todos.filter(x=>(ARS_TODOS||(x.h.alvos||[]).length||(x.h.temas||[]).length)&&casa(x));ARS_LISTA=lista;
     const g={};for(const x of lista)for(const t of ((x.h.temas||[]).length?x.h.temas:['Sem tema']))(g[t]=g[t]||[]).push(x);
+    h+=todos.length?'<p class="note" style="margin:10px 0 0">'+todos.length+(todos.length===1?' destaque':' destaques')+' nos seus livros · '+todos.filter(x=>(x.h.alvos||[]).length||(x.h.temas||[]).length).length+' já no Arsenal. Toque em <b>Classificar</b> num trecho para dizer contra quem ele serve e qual é o tema; depois filtre por adversário lá em cima.</p>':'<div class="ars-c"><b>O Arsenal junta o que você destacou nos livros.</b><p class="note" style="margin:6px 0 0">1) Leia e destaque um trecho. 2) Aqui, toque em Classificar: contra quem ele serve (ateu, protestante…) e o tema. 3) Filtre, copie com a citação, ligue a objeções e monte fichas. Ainda não há destaques: comece destacando um trecho num livro.</p></div>';
     h+='<label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:10px 0"><input type="checkbox" id="lx-arsall" '+(ARS_TODOS?'checked':'')+'> Buscar também nos destaques que não estão no Arsenal</label>';
     h+=Object.keys(g).sort((a,b)=>a==='Sem tema'?1:b==='Sem tema'?-1:a.localeCompare(b)).map(t=>'<div class="ars-g"><h4>'+esc(t)+' <small style="color:var(--muted);font-family:var(--sans);font-weight:400">'+g[t].length+'</small></h4>'+g[t].map(x=>card(x)).join('')+'</div>').join('')||'<p class="note">Nada aqui ainda. Ao destacar um trecho, toque nele e marque “Arsenal: serve contra” e o tema.</p>';
-    h+='<div class="ars-bar"><button class="ghost" data-c="exp">Exportar para Word ('+lista.length+')</button><button class="btn" data-c="ficha">Montar ficha ('+ARS_SEL.size+')</button></div>';
+    h+='<div class="ars-bar"><button class="ghost" data-c="exp">Word ('+lista.length+')</button><button class="ghost" data-c="expmd">Markdown</button><button class="btn" data-c="ficha">Montar ficha ('+ARS_SEL.size+')</button></div>';
   }else if(ARS_ABA==='obj'){
     const os=ARS.objecoes.filter(o=>(!ARS_ALVO||o.alvo===ARS_ALVO)&&(!q||nrm(o.texto+' '+o.alvo).includes(q)));
     h+='<div class="ars-f" style="margin-top:12px"><input id="lx-obn" placeholder="Nova objeção, como o outro fala: “A Bíblia não fala de purgatório”"><button class="btn" data-c="novaobj" style="width:100%">Guardar objeção'+(ARS_SEL.size?' com os '+ARS_SEL.size+' trechos selecionados como resposta':'')+'</button></div>';
@@ -3115,11 +3239,13 @@ $('#lx-arsc').addEventListener('click',async e=>{const b=e.target.closest('butto
   const ob=b.closest('[data-o]'),o=ob&&ARS.objecoes.find(y=>y.id===ob.dataset.o);
   const fb=b.closest('[data-f]'),f=fb&&ARS.fichas.find(y=>y.id===fb.dataset.f);
   const nb=b.closest('[data-n]'),n=nb&&ARS.caderno.find(y=>y.id===nb.dataset.n);
+  if(c==='tag'&&k){ARS_TAG=ARS_TAG===k?'':k;return desenhaArs();}
   if(c==='zap'&&x)return copia(textoZap(x));
   if(c==='sel'&&k){ARS_SEL.has(k)?ARS_SEL.delete(k):ARS_SEL.add(k);return desenhaArs();}
   if(c==='abre'&&x){$('#lx-ars').hidden=true;await openBook(x.b.id);setTimeout(()=>{const mk=page.querySelector('mark[data-h="'+x.h.id+'"]');if(mk)mk.scrollIntoView({block:'center'});else if(x.h.key&&/^p\d+$/.test(x.h.key))goPage(+x.h.key.slice(1));},900);return;}
   if(c==='cad'&&x){let nt=ARS.caderno.find(y=>y.id===notaAtual)||ARS.caderno.sort((a,b)=>b.at-a.at)[0];if(!nt){nt={id:'n'+Date.now().toString(36),titulo:'Notas',texto:'',at:Date.now()};ARS.caderno.push(nt);}
     nt.texto=(nt.texto?nt.texto.replace(/\s*$/,'')+'\n\n':'')+textoZap(x);nt.at=Date.now();notaAtual=nt.id;salvaArs();toast('Levado para o caderno: '+(nt.titulo||'Notas'));return;}
+  if(c==='expmd')return exportaMD('Arsenal'+(ARS_ALVO?' — contra '+ARS_ALVO:''),ARS_LISTA);
   if(c==='exp')return docArs('Arsenal'+(ARS_ALVO?' — contra '+ARS_ALVO:'')+($('#lx-arsq').value?' — '+$('#lx-arsq').value:''),ARS_LISTA);
   if(c==='ficha'){if(!ARS_SEL.size){toast('Selecione os trechos primeiro');return;}
     const titulo=prompt('Título do argumento:','');if(!titulo)return;const pr=prompt('Premissas (separe com ;):','');if(pr===null)return;const co=prompt('Conclusão:','');if(co===null)return;
@@ -4734,6 +4860,7 @@ function lucClose(){
   LROOT.hidden=true;document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
 }
 $("#lucBack").onclick=lucClose;
+window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();}};
 window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!LROOT.contains(e.target))e.stopPropagation();},true);
 document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen();}});
 
