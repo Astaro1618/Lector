@@ -919,6 +919,53 @@ body.bible-mode{background:#1b1a1e}
 .dia-fonte{font-size:12.5px;color:var(--muted);margin:16px 0 0}.dia-fonte a{color:inherit}
 :root[data-cara="breviario"] .c-lit .ghost{margin-top:14px;color:#fff;border-color:#8FA8CC}
 @media (max-width:899px){:root[data-cara] .head-actions{grid-template-columns:repeat(6,minmax(0,1fr))}:root[data-cara] .head-actions .icon-btn{font-size:10.5px}}
+/* ---------- Escritura: estado de carregamento e versículo vindo de outra tradução ---------- */
+@keyframes lxgira{to{transform:rotate(360deg)}}
+.empty.carr .spin{width:30px;height:30px;margin:0 auto 14px;border-radius:50%;border:3px solid var(--line,#ccc);border-top-color:var(--accent,#2F6B4F);animation:lxgira .9s linear infinite}
+#luc .vs .de{font-family:var(--sans);font-size:.62em;font-style:italic;color:var(--muted);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.empty.carr .spin{animation-duration:3s}}
+/* ---------- Diagnóstico e aviso de nova versão ---------- */
+.diag-l{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.45}
+.diag-l li{padding:8px 0;border-top:1px solid var(--line)}.diag-l time{color:var(--muted);margin-right:6px}
+.diag-l b{font-weight:700}.diag-l .erro b{color:#B3382C}.diag-l .aviso b{color:#9A6B12}.diag-l span{display:block;word-break:break-word;margin-top:2px}
+#lx-nova{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--ink);color:var(--bg);box-shadow:0 8px 28px rgba(0,0,0,.3);font-size:15px;max-width:calc(100vw - 24px)}
+#lx-nova button{min-height:44px;padding:0 18px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700}
+
+/* ---------- Movimento: tudo suave, nada brusco (desligado para quem pede "reduzir movimento") ---------- */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes lxEntra{from{opacity:0;transform:translateY(6px)}}
+  @keyframes lxTroca{from{opacity:0;transform:translateY(8px)}}
+  /* janelas: sobem com mola e o fundo escurece; ao fechar descem e somem */
+  .sheet{transition:opacity .22s ease,visibility 0s}
+  .sheet .panel{transition:transform .42s cubic-bezier(.22,1,.36,1)}
+  .sheet[hidden]{display:flex!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility 0s linear .18s}
+  .sheet[hidden] .panel{transform:translateY(36px);transition:transform .2s ease-in}
+  .sheet.gate[hidden] .panel{transform:scale(.96)}
+  /* estante em cascata */
+  .shelf.entra :is(.book,.c-row,.c-sp,.c-fila,.prat,.hero,.c-cont,.c-sel){animation:lxEntra .32s ease-out backwards}
+  .shelf.entra .book:nth-child(2),.shelf.entra .c-row:nth-child(2),.shelf.entra .c-sp:nth-child(2){animation-delay:20ms}
+  .shelf.entra .book:nth-child(3),.shelf.entra .c-row:nth-child(3),.shelf.entra .c-sp:nth-child(3){animation-delay:40ms}
+  .shelf.entra .book:nth-child(4),.shelf.entra .c-row:nth-child(4),.shelf.entra .c-sp:nth-child(4){animation-delay:60ms}
+  .shelf.entra .book:nth-child(5),.shelf.entra .c-row:nth-child(5),.shelf.entra .c-sp:nth-child(5){animation-delay:80ms}
+  .shelf.entra .book:nth-child(6),.shelf.entra .c-row:nth-child(6),.shelf.entra .c-sp:nth-child(6){animation-delay:100ms}
+  .shelf.entra .book:nth-child(7),.shelf.entra .c-row:nth-child(7),.shelf.entra .c-sp:nth-child(7){animation-delay:120ms}
+  .shelf.entra .book:nth-child(8),.shelf.entra .c-row:nth-child(8),.shelf.entra .c-sp:nth-child(8){animation-delay:140ms}
+  .shelf.entra .book:nth-child(9),.shelf.entra .c-row:nth-child(9),.shelf.entra .c-sp:nth-child(9){animation-delay:160ms}
+  .shelf.entra .book:nth-child(10),.shelf.entra .c-row:nth-child(10),.shelf.entra .c-sp:nth-child(10){animation-delay:180ms}
+  .shelf.entra .book:nth-child(11),.shelf.entra .c-row:nth-child(11),.shelf.entra .c-sp:nth-child(11){animation-delay:200ms}
+  .shelf.entra .book:nth-child(12),.shelf.entra .c-row:nth-child(12),.shelf.entra .c-sp:nth-child(12){animation-delay:220ms}
+  .shelf.entra .book:nth-child(13),.shelf.entra .c-row:nth-child(13),.shelf.entra .c-sp:nth-child(13){animation-delay:240ms}
+  .shelf.entra .book:nth-child(14),.shelf.entra .c-row:nth-child(14),.shelf.entra .c-sp:nth-child(14){animation-delay:260ms}
+  .shelf.entra .book:nth-child(15),.shelf.entra .c-row:nth-child(15),.shelf.entra .c-sp:nth-child(15){animation-delay:280ms}
+  .shelf.entra .book:nth-child(16),.shelf.entra .c-row:nth-child(16),.shelf.entra .c-sp:nth-child(16){animation-delay:300ms}  /* botões respondem ao toque */
+  .icon-btn,.add,.filters button,.seg button,.bk-more,.r-lock,.btn,.ghost,.nb,.tchip{transition:transform .16s cubic-bezier(.3,1.4,.5,1),background-color .22s,color .22s,border-color .22s}
+  .icon-btn:active,.add:active,.filters button:active,.seg button:active,.bk-more:active,.r-lock:active,.btn:active,.ghost:active,.nb:active{transform:scale(.93)}
+  .prog i,.cofre-b i,.gbar i{transition:width .7s cubic-bezier(.22,1,.36,1)}
+  /* Escritura: o capítulo novo entra suave; leituras do dia abrem suave */
+  #luc #read.troca{animation:lxTroca .32s ease-out}
+  .dia-sec[open] .dia-tx{animation:lxTroca .32s ease-out}
+  #lx-nova{animation:lxEntra .5s cubic-bezier(.22,1,.36,1)}
+}
 </style>
 </head>
 <body class="booting">
@@ -1022,6 +1069,7 @@ body.bible-mode{background:#1b1a1e}
     <div class="field" id="lx-zf"><span>Zoom do PDF</span>
       <div class="stepper"><button id="lx-zm" aria-label="Diminuir zoom">−</button><output id="lx-zo">100%</output><button id="lx-zp" aria-label="Aumentar zoom">+</button></div>
     </div>
+    <div class="field"><span>Ajuda</span><div class="seg"><button id="lx-diagbtn">Diagnóstico</button></div><p class="note" id="lx-ver" style="margin:8px 0 0"></p></div>
     <p class="note">Tamanho, fonte e entrelinha valem para EPUB e TXT. O zoom vale para PDF. Toque no centro da tela para esconder ou mostrar os controles.</p>
   </div>
 </div>
@@ -1088,6 +1136,12 @@ body.bible-mode{background:#1b1a1e}
   </div>
 </div>
 
+<div class="sheet" id="lx-diag" hidden>
+  <div class="panel tall" role="dialog" aria-label="Diagnóstico">
+    <h2>Diagnóstico</h2>
+    <div id="lx-diagl"></div>
+  </div>
+</div>
 <div class="sheet" id="lx-dia" hidden>
   <div class="panel tall" role="dialog" aria-label="Do dia">
     <h2>Do dia</h2>
@@ -1244,7 +1298,7 @@ async function diaBusca(){const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()
   if(lit||o.ev){diaCache=o;try{localStorage.setItem('lector-dia',JSON.stringify(o));}catch(e){}}
   return o;}
 /* tira os números de versículo grudados no texto ("11Aconteceu", "13e gritaram", "3“Se algum"): a referência já está no cabeçalho */
-function diaSemNum(t){return String(t||'').replace(/(^|[\s“"'‘(«—–-])\d{1,3}(?=[A-Za-zÀ-ÿ“"‘'«(])/g,'$1').replace(/[ \t]{2,}/g,' ');}
+function diaSemNum(t){return String(t||'').replace(/(^|[^\p{L}\p{N}])\d{1,3}(?=[\p{L}“"‘'«])/gu,(m,q)=>/[.;:!?)”’,]$/.test(q)?q+' ':q).replace(/[ \t]{2,}/g,' ');}
 function diaP(t){return diaSemNum(t).split(/\n+/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');}
 function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
 async function renderDia(){const el=$('#lx-dial');
@@ -1267,6 +1321,35 @@ async function renderDia(){const el=$('#lx-dial');
   h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santo e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>.</p>';
   el.innerHTML=h;}
 $('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');renderDia();};
+
+/* ---------- Diagnóstico e versão: o app guarda os últimos avisos e erros para você poder ver (Aa > Diagnóstico) ---------- */
+const DIAG=(()=>{let a=[];try{a=JSON.parse(localStorage.getItem('lector-diag')||'[]');}catch(e){}
+  const salva=()=>{try{localStorage.setItem('lector-diag',JSON.stringify(a.slice(-60)));}catch(e){}};
+  const add=(n,args)=>{try{const t=args.map(x=>x instanceof Error?(x.name+': '+x.message):typeof x==='object'?JSON.stringify(x).slice(0,200):String(x)).join(' ').slice(0,400);
+    if(/ResizeObserver loop|Failed to load resource/.test(t))return;a.push({t:Date.now(),n,m:t});if(a.length>80)a=a.slice(-60);salva();}catch(e){}};
+  const w=console.warn.bind(console),er=console.error.bind(console);
+  console.warn=(...x)=>{w(...x);add('aviso',x);};console.error=(...x)=>{er(...x);add('erro',x);};
+  addEventListener('error',e=>add('erro',[(e.message||'erro')+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')']));
+  addEventListener('unhandledrejection',e=>add('erro',['Promessa sem tratamento:',e.reason]));
+  return{lista:()=>a.slice().reverse(),limpa(){a=[];salva();}};})();
+async function appVersao(){try{const ks=await caches.keys();const v=ks.map(x=>x.match(/^lector-v(\d+)$/)).filter(Boolean).map(m=>+m[1]).sort((x,y)=>y-x)[0];return v?String(v):'';}catch(e){return '';}}
+async function renderDiag(){const el=$('#lx-diagl');el.innerHTML='<p class="dia-st">Lendo…</p>';
+  const ver=await appVersao();let esp='';try{const e=await navigator.storage.estimate();esp=Math.round(e.usage/1048576)+' MB usados neste aparelho';}catch(e){}
+  const L=DIAG.lista();
+  el.innerHTML='<p class="note" style="margin:0 0 12px">Versão '+esc(ver||'?')+' · '+(navigator.onLine===false?'sem internet':'com internet')+(esp?' · '+esp:'')+'</p>'+
+    '<div class="seg" style="margin-bottom:12px"><button id="lx-diag-c">Copiar tudo</button><button id="lx-diag-l">Limpar</button></div>'+
+    (L.length?'<ul class="diag-l">'+L.map(x=>'<li class="'+x.n+'"><time>'+new Date(x.t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})+'</time> <b>'+x.n+'</b><span>'+esc(x.m)+'</span></li>').join('')+'</ul>':'<p class="dia-st">Nenhum aviso nem erro registrado. Tudo certo por aqui.</p>');
+  const c=$('#lx-diag-c');if(c)c.onclick=()=>{const t='Lector v'+ver+'\n'+L.map(x=>new Date(x.t).toISOString()+' '+x.n+' '+x.m).join('\n');(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copiado')).catch(()=>toast('Não foi possível copiar'));};
+  const l=$('#lx-diag-l');if(l)l.onclick=()=>{DIAG.limpa();renderDiag();};}
+$('#lx-diagbtn').onclick=()=>{closeSheets();openSheet('#lx-diag');renderDiag();};
+appVersao().then(v=>{const e=$('#lx-ver');if(e&&v)e.textContent='Lector versão '+v;});
+/* nova versão: quando o service worker novo assume, avisa e deixa recarregar com um toque (sem perder a leitura: ela é salva antes) */
+if('serviceWorker' in navigator){const tinha=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!tinha||$('#lx-nova'))return;
+    const d=document.createElement('div');d.id='lx-nova';d.setAttribute('role','status');d.innerHTML='<span>Nova versão do Lector pronta</span><button>Atualizar</button>';
+    d.querySelector('button').onclick=()=>{try{saveProgress();}catch(e){}location.reload();};document.body.appendChild(d);});
+  const confere=()=>navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)confere();});setInterval(confere,30*60*1000);}
 
 /* ---------- Caras do Lector: a mesma estante com outra organização (escolha em Aa > Cara do Lector) ----------
    Cada cara tem um desenho para computador (tela larga) e outro para celular. "Clássica" = a estante de sempre. */
@@ -1487,6 +1570,7 @@ async function renderLibrary(){
   $('#lx-count').textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'Sua biblioteca de bolso';
   const list=filter==='all'?books:books.filter(b=>b.status===filter);
   const shelf=$('#lx-shelf');mostraCofre();const C=caraAtiva();caraTopo(C,books);
+  {const chave=filter+'|'+(S.layout||'')+'|'+(S.cara||'');if(renderLibrary.k!==chave){renderLibrary.k=chave;shelf.classList.remove('entra');void shelf.offsetWidth;shelf.classList.add('entra');}}
   if(!books.length){shelf.innerHTML='<div class="empty"><h2>A estante está vazia</h2><p>Adicione um livro em EPUB, PDF ou TXT que esteja no seu aparelho.</p><button class="add" data-act="add">Adicionar livro</button></div>';return;}
   if(!list.length){shelf.innerHTML='<div class="empty"><p>Nenhum livro em “'+esc(document.querySelector('#lx-filters .on').firstChild.textContent)+'”.</p></div>';return;}
   const locais=new Set(await chavesArquivos());
@@ -1568,7 +1652,7 @@ async function openBook(id){telaCheiaCelular();
   lastTick=Date.now();lastAct=Date.now();pgUlt=null;
   cur={book,toc:[],map:{},labels:{}};
   $('#lx-rtitle').textContent=book.title;$('#lx-trp').hidden=book.type!=='pdf';
-  $('#lx-reader').hidden=false;$('#lx-reader').classList.add('focus');document.body.style.overflow='hidden';
+  $('#lx-reader').hidden=false;$('#lx-reader').classList.add('focus');document.body.style.overflow='hidden';animaLeitor();
   try{if(!localStorage.getItem('lector-hint')){localStorage.setItem('lector-hint','1');setTimeout(()=>toast('Toque no centro da tela para ver os controles'),900);}}catch(e){}
   page.innerHTML='<p class="msg">Abrindo…</p>';
   page.style.setProperty('--z',book.type==='pdf'?(book.zoom||1):1);
@@ -1675,7 +1759,7 @@ $('#lx-addd').onclick=()=>{closeSheets();$('#lx-dir').click();};
 $('#lx-dir').onchange=e=>{const f=[...e.target.files].filter(x=>/\.(epub|pdf|txt)$/i.test(x.name));e.target.value='';if(f.length){toast(f.length===1?'1 livro encontrado':f.length+' livros encontrados');addFiles(f);}else toast('Nenhum EPUB, PDF ou TXT nesta pasta');};
 $('#lx-file').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)addFiles(f);};
 $('#lx-filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;renderLibrary();};
-$('#lx-shelf').onclick=e=>{const o=e.target.closest('[data-open]'),m=e.target.closest('[data-menu]'),a=e.target.closest('[data-act="add"]'),sp=e.target.closest('[data-sel]'),v=e.target.closest('[data-vai]');if(m)openMenu(m.dataset.menu,!!m.dataset.edit);else if(o)openBook(o.dataset.open);else if(a)openSheet('#lx-addsheet');else if(sp){if(sp.classList.contains('on'))openBook(sp.dataset.sel);else{caraSel=sp.dataset.sel;renderLibrary();}}else if(v){const x=document.getElementById(v.dataset.vai);if(x)x.click();}};
+$('#lx-shelf').onclick=e=>{const o=e.target.closest('[data-open]'),m=e.target.closest('[data-menu]'),a=e.target.closest('[data-act="add"]'),sp=e.target.closest('[data-sel]'),v=e.target.closest('[data-vai]');if(m)openMenu(m.dataset.menu,!!m.dataset.edit);else if(o){const rc=o.getBoundingClientRect();window.__capa=rc.width>20&&rc.height>20?rc:null;openBook(o.dataset.open);}else if(a)openSheet('#lx-addsheet');else if(sp){if(sp.classList.contains('on'))openBook(sp.dataset.sel);else{caraSel=sp.dataset.sel;renderLibrary();}}else if(v){const x=document.getElementById(v.dataset.vai);if(x)x.click();}};
 $('#lx-ctop').onclick=$('#lx-shelf').onclick;
 $('#lx-back').onclick=closeBook;
 $('#lx-ribbon').onclick=toggleMark;
@@ -1746,6 +1830,8 @@ page.addEventListener('scroll',()=>{if(!cur)return;lastAct=Date.now();tick();con
 page.addEventListener('click',e=>{const mo=e.target.closest('mark.hl-o');if(mo&&!e.target.closest('mark.hl')&&getSel().isCollapsed&&S.outros!=='nao'){e.preventDefault();openOutro(mo.dataset.o,mo.dataset.h);return;}const mk=e.target.closest('mark.hl');if(mk&&getSel().isCollapsed){e.preventDefault();openHL(mk.dataset.h);return;}const a=e.target.closest('a[data-link]');if(!a){const r=page.getBoundingClientRect();const x=(e.clientX-r.left)/r.width;if(x>.25&&x<.75&&getSel().isCollapsed)toggleFocus();return;}e.preventDefault();goHref(a.dataset.link);});
 let focusHint=false;
 function toggleFocus(){const R=$('#lx-reader');R.classList.toggle('focus');}
+/* o leitor cresce a partir da capa que foi tocada (ou aparece suave, se não houver capa) */
+function animaLeitor(){window.__capa=null;const R=$('#lx-reader');if(!R.animate||matchMedia('(prefers-reduced-motion:reduce)').matches)return;R.animate([{opacity:0},{opacity:1}],{duration:200,easing:'ease-out'});}
 /* Zoom do PDF ancorado: o ponto do texto que está sob o cursor (ou o centro da tela) fica parado; nada rola sozinho.
    Durante a roda do mouse só a escala muda; o redesenho nítido das páginas vem 250 ms depois do último passo. */
 let zoomT=0;
@@ -1771,7 +1857,9 @@ document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if
   /* no celular, o toque que abriu a janela (ex.: "Traduzir") termina em cima do fundo dela: não pode fechar na mesma hora */
   if(Date.now()-(openSheet.t||0)<600)return;closeSheets();}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.querySelector('.sheet:not([hidden])'))closeSheets();else if(cur)closeBook();}});
-document.querySelectorAll('[data-set]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.set;const f=cur?frac():0;S[k]=k==='lh'?parseFloat(b.dataset.v):b.dataset.v;saveSettings();applySettings();if((k==='layout'||k==='cara')&&!cur)renderLibrary();if(cur&&k!=='theme')requestAnimationFrame(()=>setFrac(f));}));
+document.querySelectorAll('[data-set]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.set;const f=cur?frac():0;
+  const faz=()=>{S[k]=k==='lh'?parseFloat(b.dataset.v):b.dataset.v;saveSettings();applySettings();if((k==='layout'||k==='cara')&&!cur)return renderLibrary();};
+  {faz();if(cur&&k!=='theme')requestAnimationFrame(()=>setFrac(f));}}));
 function stepFs(d){const f=cur?frac():0;S.fs=Math.max(14,Math.min(30,S.fs+d));saveSettings();applySettings();if(cur)requestAnimationFrame(()=>setFrac(f));}
 $('#lx-fsm').onclick=()=>stepFs(-1);$('#lx-fsp').onclick=()=>stepFs(1);
 document.querySelector('#lx-contents .tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;renderContents();};
@@ -2573,10 +2661,29 @@ window.addEventListener('resize',()=>{if(S.device==='auto'){const was=document.d
 
 /* ---------- Ajuste da camada de texto do PDF ---------- */
 function fitTextLayers(){page.querySelectorAll('.pg[data-pw]').forEach(d=>{d.style.setProperty('--scale-factor',d.clientWidth/(+d.dataset.pw));});}
-function redrawPages(){if(!cur||!cur.pdf)return;const f=frac();cur.gen=(cur.gen||0)+1;page.querySelectorAll('.pg').forEach(d=>{delete d.dataset.done;cur.io.unobserve(d);cur.io.observe(d);});requestAnimationFrame(()=>setFrac(f));}
+function redrawPages(){if(!cur||!cur.pdf)return;cur.gen=(cur.gen||0)+1;page.querySelectorAll('.pg').forEach(d=>{delete d.dataset.done;cur.io.unobserve(d);cur.io.observe(d);});requestAnimationFrame(restauraAncora);}
 let rsT;
-try{new ResizeObserver(()=>{if(!cur||!cur.pdf)return;fitTextLayers();clearTimeout(rsT);
-  rsT=setTimeout(()=>{if(!cur||!cur.pdf)return;const d=page.querySelector('.pg[data-rw]');if(d&&Math.abs(d.clientWidth/(+d.dataset.rw)-1)>.2)redrawPages();},500);}).observe(page);}catch(e){}
+/* Posição estável: o ponto do texto que está no alto da tela é lembrado (a cada rolagem) e recolocado depois que a largura muda
+   (celular girado, tela cheia, teclado). Mudar só a altura (barra de notificações, barra do navegador) não mexe em nada. */
+let anc=null,ancW=0,ancT=0;
+function marcaAncora(){if(!cur||!page.clientWidth)return;ancW=page.clientWidth;
+  try{if(cur.pdf){const t=topPage();if(t)anc={pdf:1,n:t.n,off:t.off,x:page.scrollLeft/Math.max(1,page.scrollWidth)};return;}
+    const r=page.getBoundingClientRect(),y=r.top+96,x=r.left+Math.min(90,r.width/2);const el=document.elementFromPoint(x,y);
+    const bl=el&&el.closest?el.closest('p,li,h1,h2,h3,h4,h5,h6,blockquote,pre,td,figcaption'):null;
+    if(bl&&page.contains(bl)){const b=bl.getBoundingClientRect();anc={el:bl,off:(y-b.top)/Math.max(1,b.height)};}}catch(e){}}
+function restauraAncora(){if(!anc||!cur)return;
+  try{if(anc.pdf){const d=page.querySelector('.pg[data-n="'+anc.n+'"]');if(d){page.scrollTop=d.offsetTop+d.offsetHeight*anc.off;page.scrollLeft=anc.x*Math.max(1,page.scrollWidth);}}
+    else if(anc.el&&anc.el.isConnected){const r=page.getBoundingClientRect(),y=r.top+96,b=anc.el.getBoundingClientRect();page.scrollTop+=b.top+anc.off*b.height-y;}}catch(e){}}
+page.addEventListener('scroll',()=>{clearTimeout(ancT);ancT=setTimeout(marcaAncora,120);},{passive:true});
+/* depois de qualquer mudança de largura: reencaixa a camada de texto, recoloca as marcações e volta ao mesmo ponto do texto */
+function reencaixa(){if(!cur||!cur.pdf)return;fitTextLayers();page.querySelectorAll('.pg[data-done]').forEach(redesenhaCaixas);}
+try{new ResizeObserver(()=>{if(!cur)return;const w=page.clientWidth;if(!w||Math.abs(w-ancW)<2)return;
+  const era=ancW;ancW=w;if(era)restauraAncora();reencaixa();
+  clearTimeout(rsT);rsT=setTimeout(()=>{if(!cur)return;
+    if(cur.pdf){const d=page.querySelector('.pg[data-rw]');if(d&&Math.abs(d.clientWidth/(+d.dataset.rw)-1)>.2)redrawPages();}
+    restauraAncora();reencaixa();marcaAncora();},350);}).observe(page);}catch(e){}
+document.addEventListener('fullscreenchange',()=>{[200,600].forEach(t=>setTimeout(()=>{restauraAncora();reencaixa();},t));});
+addEventListener('orientationchange',()=>{[300,700].forEach(t=>setTimeout(()=>{restauraAncora();reencaixa();},t));});
 
 /* ---------- Conta: sincronizar entre aparelhos ---------- */
 let cloud=null,upChain=Promise.resolve();const syncT={};
@@ -3351,7 +3458,7 @@ function restorePos(book){
     updateUI();};
   requestAnimationFrame(apply);setTimeout(apply,250);setTimeout(apply,800);
   try{document.fonts&&document.fonts.ready.then(()=>setTimeout(apply,30));}catch(e){}
-  setTimeout(()=>{apply();restoring=false;},1600);
+  setTimeout(()=>{apply();restoring=false;marcaAncora();},1600);
 }
 
 /* ---------- Lupa grande e marcador do fim da seleção ---------- */
@@ -4215,6 +4322,9 @@ const active=()=>{const a=TR.filter(t=>SEL.includes(t.id));return a.length?a:TR.
 const chCount=b=>Math.max(0,...TR.map(t=>(t.books[b]||[]).length));
 const vCount=(b,c)=>Math.max(0,...active().map(t=>((t.books[b]||[])[c-1]||[]).length));
 const okV=x=>!!x&&x.length<=800&&/[A-Za-zÀ-ÿ]{2}/.test(x);
+/* lacuna = versículo que a edição não trouxe (ou trouxe só um aviso). Entra no lugar o versículo da primeira outra tradução que o tenha, marcado "de ...". */
+const lacuna=x=>!x||/^\((nesta edição|trecho ausente|versículo sem texto)/.test(x);
+function outraV(atual,b,c,v){for(const t of TR){if(t===atual)continue;const x=getV(t,b,c,v);if(x&&!lacuna(x)&&!/^\(unido ao v\./.test(x))return{x,nome:t.name};}return null;}
 const getV=(t,b,c,v)=>{const x=((t.books[b]||[])[c-1]||[])[v-1];return okV(x)?x:undefined;};
 function autoName(n){
   const pats=[[/vulgata/i,"CNBB Vulgata"],[/ave[- ]?maria/i,"Ave-Maria"],[/can[cç][aã]o nova/i,"Canção Nova"],[/jerusal[eé]m/i,"Jerusalém"],[/pastoral/i,"Pastoral"],[/matos soares/i,"Matos Soares"],[/peregrino/i,"Peregrino"],[/tea|tradu[cç][aã]o ecum/i,"TEB"],[/cnbb/i,"CNBB"]];
@@ -4241,6 +4351,7 @@ function render(hl){
   PICK.clear();updAct();
   const R=$("#read");
   if(!TR.length){
+    if(sbSess()&&(lucSyncP||!started)){R.innerHTML=`<div class="empty carr"><div class="spin"></div><h2>Abrindo a Escritura…</h2><p>Na primeira vez baixa as Bíblias do cofre; depois abre na hora, até sem internet.</p></div>`;return;}
     R.innerHTML=`<div class="empty"><h2>Adicione uma Bíblia</h2><p>Carregue o arquivo de uma tradução para começar a ler.</p><button class="btn" id="bStart">Adicionar Bíblia</button></div>`;
     $("#bStart").onclick=openMenu;return;
   }
@@ -4251,15 +4362,18 @@ function render(hl){
      Na tela isso aparece como UM bloco com o número "2–7"; os demais ficam só como ponto de ancoragem (busca e "ir para" continuam achando o v. 5). */
   const uni=v=>{const m=String(getV(A[0],b,c,v)||"").match(/^\(unido ao v\. (\d+)\)$/);return m?+m[1]:0;};
   for(let v=1;v<=n;v++){
-    const main=getV(A[0],b,c,v),fb="";if(!main)miss++;
+    let main=getV(A[0],b,c,v),de="";
+    if(lacuna(main)){const f=outraV(A[0],b,c,v);if(f){main=f.x;de=f.nome;}}
+    if(!main||lacuna(main))miss++;
     const alts=A.slice(1).map(t=>{const x=getV(t,b,c,v);return x?`<span class="alt"><b>${esc(t.name)}</b>${esc(x)}</span>`:"";}).join("");
     const on=hl&&v>=hl.v1&&v<=hl.v2;
     if(uni(v)&&!alts){h+=`<p class="vs vj${on?" hl":""}" id="v${v}" data-v="${v}" aria-hidden="true"></p>`;continue;}
     let rot=String(v),z=v;if(main&&!uni(v)){while(z<n&&uni(z+1)===v)z++;if(z>v)rot=v+"–"+z;}
-    h+=`<p class="vs${on?" hl":""}" id="v${v}" data-v="${v}"><sup>${rot}</sup>${main?esc(main):`<span class="alt" style="display:inline">versículo não lido nesta tradução</span>`}${alts}</p>`;
+    h+=`<p class="vs${on?" hl":""}" id="v${v}" data-v="${v}"><sup>${rot}</sup>${main?esc(main):`<span class="alt" style="display:inline">versículo não lido nesta tradução</span>`}${de?`<span class="de"> · de ${esc(de)}</span>`:""}${alts}</p>`;
   }
+  lucDesenhou=true;
   if(miss)note=`<p class="note">${miss} versículo${miss>1?"s":""} deste capítulo não ${miss>1?"foram lidos":"foi lido"} em ${esc(A[0].name)}.</p>`;
-  R.innerHTML=note+h+pager();
+  R.innerHTML=note+h+pager();R.classList.remove('troca');void R.offsetWidth;R.classList.add('troca');
   mostraMarca();
   if(hl){const el=document.getElementById("v"+hl.v1);if(el)scrollToEl(el);setTimeout(()=>LROOT.querySelectorAll(".vs.hl").forEach(x=>x.classList.remove("hl")),2600);}
   else window.scrollTo(0,0);
@@ -4542,15 +4656,30 @@ async function sbEntrar(email,senha){
   const j=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(/invalid/i.test(j.error_description||j.msg||j.error||"")?"E-mail ou senha errados.":"Não foi possível entrar agora. Verifique a internet.");
   sbGuarda(sbFixa(j));return j;}
-async function sbBiblias(){const t=await sbToken();if(!t)return 0;
+/* ---- Bíblias do cofre: ficam guardadas neste aparelho para abrir na hora (e sem internet); a internet só confere se mudou ---- */
+let lucLocalP=null,lucSyncP=null,lucDesenhou=false;
+function lucLocal(){return lucLocalP||(lucLocalP=(async()=>{TR=await idbAll();TR.sort((a,b)=>a.id<b.id?-1:1);return TR;})());}
+function lucSync(){return lucSyncP||(lucSyncP=(async()=>{
+  await lucLocal();const t=await sbToken();if(!t)return 0;let n=0;
   const h={apikey:SB_KEY,Authorization:"Bearer "+t};
   const r=await fetch(SB_URL+"/storage/v1/object/list/biblias",{method:"POST",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify({prefix:"",limit:100,sortBy:{column:"name",order:"asc"}})});
   if(!r.ok)return 0;
-  const lista=(await r.json()).filter(o=>/\.json$/i.test(o.name));let n=0;
-  for(const o of lista){const nome=o.name.replace(/\.json$/i,"");if(TR.some(t=>t.name===nome))continue;
-    try{const rr=await fetch(SB_URL+"/storage/v1/object/authenticated/biblias/"+encodeURIComponent(o.name),{headers:h});if(!rr.ok)continue;
-      const books=parseJSON(await rr.json());TR.push({id:"nuvem-"+nome,name:nome,books,stats:stats(books),pv:PV,ext:"",fixa:true});n++;}catch(e){}}
-  return n;}
+  const lista=(await r.json()).filter(o=>/\.json$/i.test(o.name));
+  await Promise.all(lista.map(async o=>{const nome=o.name.replace(/\.json$/i,""),id="nuvem-"+nome,ver=String(o.updated_at||o.created_at||(o.metadata&&o.metadata.size)||"");
+    if(TR.some(x=>x.name===nome&&x.id!==id))return;
+    const velho=TR.find(x=>x.id===id);if(velho&&ver&&velho.ver===ver)return;
+    try{const rr=await fetch(SB_URL+"/storage/v1/object/authenticated/biblias/"+encodeURIComponent(o.name),{headers:h});if(!rr.ok)return;
+      const books=parseJSON(await rr.json()),novo={id,name:nome,books,stats:stats(books),pv:PV,ext:"",fixa:true,ver};
+      const k=TR.findIndex(x=>x.id===id);if(k>=0)TR[k]=novo;else{TR.push(novo);TR.sort((a,b)=>a.id<b.id?-1:1);}
+      try{await idbPut(novo);}catch(e){}
+      n++;lucDepois(id);}catch(e){}}));
+  return n;})().finally(()=>{lucSyncP=null;}));}
+const sbBiblias=()=>lucSync();
+/* uma Bíblia chegou ou mudou: atualiza a tela sem tirar a pessoa do lugar */
+function lucDepois(id){if(!started)return;
+  SEL=SEL.filter(x=>TR.some(t=>t.id===x)).slice(0,1);if(!SEL.length&&TR.length){SEL=[TR[0].id];ls.set("luc-sel",SEL);}
+  renderTrs();
+  if(!LROOT.hidden&&(!lucDesenhou||SEL[0]===id)){const y=window.scrollY;render();window.scrollTo(0,y);}}
 function renderNuvem(msg){const el=$("#nuvem");if(!el)return;const s=sbSess();
   if(s){const em=(s.user&&s.user.email)||"";
     el.innerHTML=`<h4>Cofre de vocês</h4><p class="status">Conectado como <b>${esc(em)}</b>. ${msg?esc(msg):"As Bíblias de vocês vêm do cofre."}</p><button class="btn sm ghost" id="sbSair">Sair</button>`;}
@@ -4560,24 +4689,21 @@ LROOT.addEventListener("click",async e=>{
     try{await sbEntrar($("#sbEmail").value.trim(),$("#sbSenha").value);dispatchEvent(new Event("lector-login"));renderNuvem("Carregando as Bíblias…");
       const n=await sbBiblias();if(!SEL.length&&TR.length){SEL=[TR[0].id];ls.set("luc-sel",SEL);}renderTrs();render();renderNuvem(n?(n===1?"1 Bíblia carregada.":n+" Bíblias carregadas."):"");}
     catch(err){b.disabled=false;if(m)m.textContent=err.message;}}
-  if(e.target.closest("#sbSair")){sbGuarda(null);TR=TR.filter(t=>!String(t.id).startsWith("nuvem-"));SEL=SEL.filter(id=>TR.some(t=>t.id===id));if(!SEL.length&&TR.length)SEL=[TR[0].id];renderTrs();render();renderNuvem();}
+  if(e.target.closest("#sbSair")){sbGuarda(null);for(const t of TR.filter(t=>String(t.id).startsWith("nuvem-")))idbDel(t.id).catch(()=>{});TR=TR.filter(t=>!String(t.id).startsWith("nuvem-"));SEL=SEL.filter(id=>TR.some(t=>t.id===id));if(!SEL.length&&TR.length)SEL=[TR[0].id];renderTrs();render();renderNuvem();}
 });
 LROOT.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&(e.target.id==="sbSenha"||e.target.id==="sbEmail")){const b=$("#sbEntrar");if(b)b.click();}});
 
 async function lucStart(){if(started)return;started=true;
-  TR=await idbAll();TR.sort((a,b)=>a.id<b.id?-1:1);
-  /* Bíblias servidas pelo computador do Luiz (link temporário): carregadas só na memória, nunca salvas
-     neste navegador e sem botão de remover. Fora do servidor local, esta rota não existe e nada acontece. */
-  try{const r=await fetch("/__biblias/lista",{cache:"no-store"});
-    if(r.ok){for(const nome of await r.json()){
+  await lucLocal();
+  /* só para o computador do Luiz (link temporário): Bíblias servidas por ele, carregadas só na memória */
+  fetch("/__biblias/lista",{cache:"no-store"}).then(r=>r.ok?r.json():[]).then(async nomes=>{for(const nome of nomes){
       if(TR.some(t=>t.name===nome))continue;
       try{const j=await (await fetch("/__biblias/"+encodeURIComponent(nome)+".json",{cache:"no-store"})).json();
-        const books=parseJSON(j);TR.push({id:"srv-"+nome,name:nome,books,stats:stats(books),pv:PV,ext:"",fixa:true});}catch(e){}
-    }}}catch(e){}
-  try{await sbBiblias();}catch(e){}   // Bíblias do cofre, se a pessoa já entrou
+        const books=parseJSON(j);TR.push({id:"srv-"+nome,name:nome,books,stats:stats(books),pv:PV,ext:"",fixa:true});lucDepois("srv-"+nome);}catch(e){}}}).catch(()=>{});
+  if(sbSess())lucSync().then(()=>renderNuvem()).catch(()=>renderNuvem());
   renderNuvem();
   const old=TR.filter(t=>t.raw&&t.pv!==PV);
-  if(old.length){$("#read").innerHTML=`<div class="empty"><h2>Atualizando a leitura das Bíblias…</h2><p>Isso acontece só uma vez.</p></div>`;await new Promise(r=>setTimeout(r,50));
+  if(old.length){$("#read").innerHTML=`<div class="empty carr"><div class="spin"></div><h2>Atualizando a leitura das Bíblias…</h2><p>Isso acontece só uma vez.</p></div>`;await new Promise(r=>setTimeout(r,50));
     for(const tt of old){try{tt.books=parseText(tt.raw);tt.stats=stats(tt.books);tt.pv=PV;}catch(e){}}
     for(const tt of old){try{await idbPut(tt);}catch(e){}}}
   for(const t of TR){if(t.name.length>30||t.name.includes(" -- ")){t.name=autoName(t.name);try{await idbPut(t);}catch(e){}}}
@@ -4590,6 +4716,9 @@ async function lucStart(){if(started)return;started=true;
     const el=document.getElementById("v"+MARCA.v);if(el&&MARCA.v>1)setTimeout(()=>scrollToEl(el),60);}
   else render();
 }
+/* aquece em segundo plano: depois que a pessoa entra, as Bíblias já ficam prontas antes de ela abrir a Escritura */
+function lucAquecer(){if(!sbSess())return;setTimeout(()=>{lucLocal().then(()=>lucSync()).catch(()=>{});},2500);}
+lucAquecer();addEventListener("lector-login",lucAquecer);
 
 /* ---------- integração com o Lector ---------- */
 let from=null,libScroll=0,bibScroll=0,bodyOv="";
