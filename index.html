@@ -1014,6 +1014,11 @@ body.bible-mode{background:#1b1a1e}
 .tc-q{margin:0 0 8px;font-size:13.5px;font-style:italic;color:var(--muted)}.tc-x{margin:8px 4px 16px;font-family:var(--serif);font-size:18px;line-height:1.6;text-align:left}
 .tc-bt{display:flex;gap:10px;justify-content:center;margin-top:14px}.tc-bt .btn{min-width:150px}.tc-bt button[disabled]{opacity:.4}
 @media (prefers-reduced-motion:no-preference){.ig-r[open]>.ig-c{animation:lxTroca .34s ease-out}.tc h4,.tc-x{animation:lxTroca .28s ease-out}}
+/* ---------- Pergunta do fim do livro ---------- */
+#lx-fim{position:absolute;left:50%;bottom:calc(var(--sab,0px) + 76px);transform:translate(-50%,14px);z-index:6;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--pill,#26231f);color:var(--pill-ink,#f4efe6);box-shadow:0 8px 26px rgba(0,0,0,.28);font-size:15px;opacity:0;pointer-events:none;max-width:calc(100% - 20px);transition:opacity .25s ease,transform .35s cubic-bezier(.22,1,.36,1)}
+#lx-fim.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+#lx-fim button{min-height:42px;padding:0 16px;border-radius:999px;font-weight:600;white-space:nowrap}
+#lx-fim button[data-fim="sim"]{background:var(--accent);color:var(--on-accent)}#lx-fim button[data-fim="nao"]{color:inherit;opacity:.8}
 </style>
 </head>
 <body class="booting">
@@ -1077,6 +1082,7 @@ body.bible-mode{background:#1b1a1e}
   </div>
   <div class="r-page" id="lx-page"></div>
   <button class="r-mini" id="lx-mini" aria-label="Ir para outra página"></button>
+  <div id="lx-fim" role="dialog" aria-label="Você terminou este livro?"><span>Você terminou este livro?</span><button data-fim="sim">Sim, terminei</button><button data-fim="nao">Ainda não</button></div>
   <div class="r-foot">
     <button class="r-lock" id="lx-lock" aria-label="Travar a tela: só rola para cima e para baixo" aria-pressed="false" title="Travar a tela"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path class="ab" d="M8 11V8a4 4 0 0 1 7.5-2"/><path class="fe" d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
     <input type="range" id="lx-range" min="0" max="1000" value="0" aria-label="Posição no livro">
@@ -1920,13 +1926,21 @@ async function openBook(id){telaCheiaCelular();
 async function closeBook(){try{if(fsAuto&&document.fullscreenElement){fsAuto=false;(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}catch(e){}
   if(!cur)return;try{localStorage.removeItem('lector-aberto');}catch(e){lxErr(e)}await saveProgress();
   if(cur.io)cur.io.disconnect();if(cur.liberaIo)cur.liberaIo.disconnect();if(cur.pdf)try{cur.pdf.destroy();}catch(e){}
-  tick();await saveProgress();cur=null;$('#lx-hlbar').hidden=true;$('#lx-reader').classList.remove('focus');page.innerHTML='';$('#lx-reader').hidden=true;document.body.style.overflow='';renderLibrary();
+  tick();await saveProgress();cur=null;$('#lx-fim').classList.remove('on');$('#lx-hlbar').hidden=true;$('#lx-reader').classList.remove('focus');page.innerHTML='';$('#lx-reader').hidden=true;document.body.style.overflow='';renderLibrary();
 }
+/* toque do usuário: usado para distinguir leitura de verdade de uma mudança de tela (girar, notificação, voltar do segundo plano) */
+let ultToque=0;
+['pointerdown','keydown','wheel','touchstart'].forEach(ev=>addEventListener(ev,()=>{ultToque=Date.now();},{passive:true,capture:true}));
 async function saveProgress(){
   if(restoring)return;
   if(!cur||!page.firstElementChild||page.querySelector('.msg'))return;
-  const b=cur.book;b.progress=frac();b.lastRead=Date.now();if(b.type==='pdf'){b.page=currentPage();const tp=topPage();if(tp){b.topPage=tp.n;b.topOff=tp.off;}}
-  if(b.progress>=.995&&b.status!=='done'){b.status='done';b.finishedAt=Date.now();toast('Marcado como lido');}
+  if(!page.clientWidth||!page.clientHeight)return;                       // tela sem tamanho (segundo plano): não registra nada
+  const b=cur.book,f=frac();
+  if(typeof cur.ultF==='number'&&f-cur.ultF>.15&&Date.now()-ultToque>4000)return;   // salto grande sem toque seu: provavelmente a tela mudou; não registra
+  const mudou=Math.abs(f-(b.progress||0))>.002;
+  b.progress=f;b.lastRead=Date.now();if(mudou&&Date.now()-ultToque<60000)b.posAt=Date.now();   // posAt: só quando VOCÊ moveu a leitura (decide qual aparelho tem a posição mais nova)
+  if(b.type==='pdf'){b.page=currentPage();const tp=topPage();if(tp){b.topPage=tp.n;b.topOff=tp.off;}}
+  cur.ultF=f;                                                              // chegar ao fim NÃO marca como lido: o app pergunta (verificaFim)
   try{await put('books',b);}catch(e){lxErr(e)}
 }
 function nearMark(){if(!cur)return -1;const f=frac();const p=cur.book.type==='pdf'?currentPage():null;return cur.book.bookmarks.findIndex(m=>p!=null?m.page===p:Math.abs(m.frac-f)<.004);}
@@ -2081,6 +2095,18 @@ document.addEventListener('click',e=>{const dd=$('#lx-sum');if(!dd.hidden&&!e.ta
 page.addEventListener('scroll',()=>{if(!cur)return;lastAct=Date.now();tick();contaPaginas();updateUI();clearTimeout(saveT);saveT=setTimeout(saveProgress,300);},{passive:true});
 page.addEventListener('click',e=>{const mo=e.target.closest('mark.hl-o');if(mo&&!e.target.closest('mark.hl')&&getSel().isCollapsed&&S.outros!=='nao'){e.preventDefault();openOutro(mo.dataset.o,mo.dataset.h);return;}const mk=e.target.closest('mark.hl');if(mk&&getSel().isCollapsed){e.preventDefault();openHL(mk.dataset.h);return;}const a=e.target.closest('a[data-link]');if(!a){const r=page.getBoundingClientRect();const x=(e.clientX-r.left)/r.width;if(getSel().isCollapsed){if(x>.25&&x<.75)toggleFocus();else if(S.virar!=='nao'&&!e.target.closest('mark,button'))page.scrollBy({top:(x<.5?-1:1)*Math.round(page.clientHeight*.88),behavior:'smooth'});}return;}e.preventDefault();goHref(a.dataset.link);});
 let focusHint=false;
+/* fim do livro: só pergunta quando você CHEGOU lá lendo (não depois de um salto) e nunca marca sozinho */
+let fimT=0;
+function verificaFim(){const el=$('#lx-fim');if(!cur||!el)return;const b=cur.book;
+  const noFim=cur.pdf?(currentPage()>=cur.pdf.numPages&&page.scrollTop+page.clientHeight>=page.scrollHeight-60):frac()>=.985;
+  if(!noFim){el.classList.remove('on');return;}
+  if(b.status==='done'||b.fimNao===dayKey(Date.now())||Date.now()-ultToque>40000)return;
+  if(Date.now()-(cur.salto||0)<20000){clearTimeout(fimT);fimT=setTimeout(verificaFim,20500-(Date.now()-cur.salto));return;}   // veio por um salto: espera um pouco e confere de novo (se continuar lá lendo, pergunta)
+  el.classList.add('on');}
+page.addEventListener('scroll',()=>{if(!cur)return;const f=frac();if(typeof cur.lastF==='number'&&Math.abs(f-cur.lastF)>.05)cur.salto=Date.now();cur.lastF=f;clearTimeout(fimT);fimT=setTimeout(verificaFim,500);},{passive:true});
+$('#lx-fim').onclick=async e=>{const t=e.target.closest('button[data-fim]');if(!t||!cur)return;const bk=cur.book;
+  if(t.dataset.fim==='sim'){bk.status='done';bk.finishedAt=Date.now();toast('Livro marcado como lido');}else bk.fimNao=dayKey(Date.now());
+  $('#lx-fim').classList.remove('on');try{await put('books',bk);}catch(x){lxErr(x);}};
 function toggleFocus(){const R=$('#lx-reader');R.classList.toggle('focus');}
 /* o leitor cresce a partir da capa que foi tocada (ou aparece suave, se não houver capa) */
 function animaLeitor(){window.__capa=null;const R=$('#lx-reader');if(!R.animate||matchMedia('(prefers-reduced-motion:reduce)').matches)return;R.animate([{opacity:0},{opacity:1}],{duration:200,easing:'ease-out'});}
@@ -2145,7 +2171,7 @@ window.addEventListener('dragover',e=>e.preventDefault());
 window.addEventListener('drop',e=>{e.preventDefault();dragN=0;$('#lx-drop').hidden=true;const f=[...(e.dataTransfer?e.dataTransfer.files:[])];if(f.length&&!cur)addFiles(f);});
 /* o Android pode fechar o app em segundo plano a qualquer momento: a posição também vai, na hora, para um registro que não depende de espera */
 let gpT=0;
-function guardaPos(){if(!cur||restoring||!page.firstElementChild||page.querySelector('.msg'))return;
+function guardaPos(){if(!cur||restoring||!page.firstElementChild||page.querySelector('.msg')||!page.clientWidth||!page.clientHeight)return;if(typeof cur.ultF==='number'&&frac()-cur.ultF>.15&&Date.now()-ultToque>4000)return;
   try{const o={id:cur.book.id,ts:Date.now()};if(cur.pdf){const t=topPage();if(t){o.n=t.n;o.off=t.off;}}else o.f=frac();localStorage.setItem('lector-pos',JSON.stringify(o));}catch(e){}}
 page.addEventListener('scroll',()=>{clearTimeout(gpT);gpT=setTimeout(guardaPos,400);},{passive:true});
 document.addEventListener('freeze',guardaPos);
@@ -2981,14 +3007,14 @@ async function fetchAsset(b){
    livros  = catálogo + arquivo (o dono é quem adicionou; os dois veem)
    estados = estado de leitura de CADA pessoa (progresso, marcadores, destaques...) */
 const SBU="https://fcdvhtfpffkbypsgpykm.supabase.co",SBK="sb_publishable_ZFZeRqDkxsiucbSXqW_kyQ_dNJJzIxV";
-const PESSOAL=['progress','page','lastRead','status','bookmarks','highlights','zoom','days','pg','startedAt','finishedAt','updatedAt','respostas','reacoes','apagados'];
+const PESSOAL=['progress','page','lastRead','posAt','status','bookmarks','highlights','zoom','days','pg','startedAt','finishedAt','updatedAt','respostas','reacoes','apagados'];
 /* SOMA dois registros de leitura da mesma pessoa (este aparelho + cofre). Nunca um apaga o outro:
    marcações, notas, marcadores, respostas e reações se juntam (só sai o que foi apagado de propósito,
    anotado em "apagados"); o tempo de cada dia fica o MAIOR; a posição vem da leitura mais recente. */
 function chaveM(x){return x.at?'a'+x.at:x.page?'p'+x.page:'f'+(+x.frac||0).toFixed(4);}
 function mesclaEstado(a,r){a=a||{};r=r||{};
   const ap=[...new Set([...(a.apagados||[]),...(r.apagados||[])])],A=new Set(ap);
-  const out={...r,...a},rec=(a.lastRead||0)>=(r.lastRead||0)?a:r;
+  const out={...r,...a},rec=(a.posAt||a.lastRead||0)>=(r.posAt||r.lastRead||0)?a:r;
   for(const k of ['progress','page','pg','zoom','lastRead','status'])if(rec[k]!==undefined)out[k]=rec[k];
   const ini=[a.startedAt,r.startedAt].filter(Boolean);if(ini.length)out.startedAt=Math.min(...ini);
   const fim=[a.finishedAt,r.finishedAt].filter(Boolean);if(fim.length)out.finishedAt=Math.max(...fim);
@@ -2998,6 +3024,7 @@ function mesclaEstado(a,r){a=a||{};r=r||{};
   const M=new Map();for(const m of [...(r.bookmarks||[]),...(a.bookmarks||[])]){if(!m)continue;const k=chaveM(m);if(!A.has('m:'+k))M.set(k,m);}out.bookmarks=[...M.values()];
   const R=new Map();for(const x of [...(r.respostas||[]),...(a.respostas||[])])if(x)R.set(x.k+'|'+x.at,x);out.respostas=[...R.values()];
   const X=new Map();for(const x of [...(r.reacoes||[]),...(a.reacoes||[])])if(x&&!A.has('x:'+x.k+'|'+x.e))X.set(x.k+'|'+x.e,x);out.reacoes=[...X.values()];
+  out.posAt=Math.max(a.posAt||0,r.posAt||0)||undefined;
   out.apagados=ap;out.updatedAt=Math.max(a.updatedAt||0,r.updatedAt||0);
   return out;}
 /* assinatura do que importa, para saber se um lado tem algo que o outro não tem */
@@ -3267,7 +3294,7 @@ function desenhaHist(){
     else{const bib=x.l.id===BIBLIA_ID,n=x.hs.length,notas=x.hs.filter(temNota),marcas=x.hs.filter(h=>!temNota(h));
       const verbo=bib?'marcou na':x.terminou?'terminou':x.comecou&&!n?'começou':'leu';
       const meta=[x.ms>=60000?minutos(x.ms):'',!bib&&n?(n===1?'1 marcação':n+' marcações'):''].filter(Boolean).join(' · ');
-      cab=verbo+' '+titulo(x.l)+(x.terminou?' 🎉':'')+(meta?' <span class="m">· '+meta+'</span>':'');
+      cab=verbo+' '+titulo(x.l)+''+(meta?' <span class="m">· '+meta+'</span>':'');
       peq=!n;
       corpo=notas.map(h=>'<div class="nt-nota"><p>'+esc(String(h.note).trim())+'</p>'+trecho(h,x.l.id)+acoes(h,x.quem,c)+'</div>').join('');
       if(marcas.length){const vis=marcas.slice(0,notas.length?1:2),resto=marcas.slice(vis.length);
@@ -3729,6 +3756,7 @@ $('#lx-es').onclick=async()=>{const b=await get('books',menuId);if(!b)return;con
 let restoring=false,userMoved=false;
 function topPage(){const y=page.scrollTop;let hit=null;for(const d of page.querySelectorAll('.pg')){if(d.offsetTop<=y+1)hit=d;else break;}if(!hit)return null;return{n:+hit.dataset.n,off:Math.max(0,Math.min(1,(y-hit.offsetTop)/hit.offsetHeight))};}
 function restorePos(book){
+  if(cur)cur.ultF=book.progress||0;
   restoring=true;userMoved=false;
   const apply=()=>{if(!cur||cur.book!==book||userMoved)return;
     if(cur.pdf&&(book.topPage||book.page)){const n=book.topPage||book.page;const d=page.querySelector('.pg[data-n="'+n+'"]');if(d)page.scrollTop=d.offsetTop+(book.topPage?d.offsetHeight*(book.topOff||0):0);}
