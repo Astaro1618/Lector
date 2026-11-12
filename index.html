@@ -1432,7 +1432,7 @@ async function renderDia(){const el=$('#lx-dial');
 /* notícias do Papa e da Igreja: vêm pela função "igreja" do cofre (os sites do Vaticano não deixam o app ler direto) */
 const dataCurta=t=>{const d=new Date(t);return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});};
 async function igNoticias(){const box=$('#lx-ig-news');if(!box||box.dataset.ok)return;box.dataset.ok='1';
-  try{const j=await (await sbReq('/functions/v1/igreja?tipo=papa')).json(),it=(j.itens||[]).slice(0,6);if(!it.length)throw new Error('vazio');
+  try{const j=await (await sbReq('/functions/v1/hyper-service?tipo=papa')).json(),it=(j.itens||[]).slice(0,6);if(!it.length)throw new Error('vazio');
     box.innerHTML=it.map(n=>'<a class="ig-n" href="'+esc(n.link)+'" target="_blank" rel="noopener"><b>'+esc(n.titulo)+'</b><span>'+esc(String(n.resumo||'').slice(0,130))+'…</span><time>'+dataCurta(n.data)+'</time></a>').join('')+'<p class="note" style="margin:6px 0 10px">Do Vatican News. Toque para ler a matéria inteira no site.</p>';
   }catch(e){box.dataset.ok='';console.warn('Lector · notícias da Igreja:',e);box.innerHTML='<p class="dia-st">As notícias aparecem aqui depois que a função “igreja” for ativada no cofre (um passo único). Enquanto isso, os links abaixo abrem direto no site.</p>';}}
 /* ---------- Terço guiado: um passo por vez, com a oração na tela ---------- */
