@@ -982,6 +982,38 @@ body.bible-mode{background:#1b1a1e}
 .dia-mais2{padding:14px 0 4px}.dia-mais2 a{display:flex;align-items:center;min-height:44px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
 :root[data-capitular="sim"] .flow section.ch p:first-of-type::first-letter{float:left;font-family:var(--display);font-size:3.2em;line-height:.82;padding:.05em .1em 0 0;color:var(--rubric)}
 .reader .r-page{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+/* ---------- Reações recolhidas (carinha) com animação suave, e citação que abre o livro ---------- */
+.rx-wrap{position:relative;display:inline-flex;align-items:center}
+.rx-add{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted);filter:none!important;opacity:1!important;padding:0!important}
+.rx-add svg{width:20px;height:20px}.rx-add:hover{background:color-mix(in srgb,var(--muted) 14%,transparent)}
+.rx-pop{position:absolute;left:0;bottom:calc(100% + 6px);display:flex;gap:2px;padding:5px 8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:0 10px 28px rgba(0,0,0,.2);opacity:0;visibility:hidden;transform:translateY(10px) scale(.8);transform-origin:left bottom;transition:opacity .15s ease,transform .24s cubic-bezier(.3,1.35,.5,1),visibility 0s linear .24s;z-index:6}
+.rx-wrap.aberto .rx-pop{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.rx-pop button{font-size:22px!important;line-height:1;padding:5px 6px!important;border-radius:50%!important;filter:none!important;opacity:1!important;transform:scale(.4);transition:transform .28s cubic-bezier(.3,1.7,.5,1),background-color .15s}
+.rx-wrap.aberto .rx-pop button{transform:scale(1)}
+.rx-wrap.aberto .rx-pop button:nth-child(2){transition-delay:.03s}.rx-wrap.aberto .rx-pop button:nth-child(3){transition-delay:.06s}.rx-wrap.aberto .rx-pop button:nth-child(4){transition-delay:.09s}.rx-wrap.aberto .rx-pop button:nth-child(5){transition-delay:.12s}.rx-wrap.aberto .rx-pop button:nth-child(6){transition-delay:.15s}
+.rx-pop button:hover{transform:scale(1.25)!important}.rx-pop button.on{background:color-mix(in srgb,var(--c,#c2185b) 18%,transparent)}
+.nt-ac .mine,.rx-row .mine{font-size:16px!important;padding:3px 7px!important;filter:none!important;opacity:1!important;background:color-mix(in srgb,var(--c,#c2185b) 14%,transparent)}
+.hs-tre.ir{cursor:pointer}.hs-tre.ir:hover{color:var(--ink)}.hs-ir{color:var(--accent);font-style:normal;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.rx-pop,.rx-pop button{transition:none}}
+/* ---------- Igreja: linhas calmas, cantos redondos ---------- */
+.ig-r{margin:10px 0;background:color-mix(in srgb,var(--surface) 70%,var(--bg) 30%);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.ig-r>summary{list-style:none;cursor:pointer;min-height:56px;padding:12px 44px 12px 18px;display:flex;flex-direction:column;justify-content:center;gap:1px;position:relative}
+.ig-r>summary::-webkit-details-marker{display:none}
+.ig-r>summary::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;border-right:1.8px solid var(--muted);border-bottom:1.8px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.ig-r[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
+.ig-t{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.25}
+.ig-s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ig-c{padding:2px 18px 16px}.ig-c>.dia-sec:first-child{border-top:1px solid var(--line)}
+.ig-r .dia-plano{border:0;padding:0}.ig-r .dia-plano>small{display:none}
+.ig-r .dia-nome{font-family:var(--serif);font-size:17px;line-height:1.4;padding:6px 0}
+.ig-l a{display:flex;align-items:center;min-height:46px;color:var(--ink);text-decoration:none;border-top:1px solid var(--line)}
+.ig-n{display:block;padding:10px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}
+.ig-n:first-child{border-top:0}.ig-n b{display:block;font-family:var(--serif);font-size:16.5px;line-height:1.35}.ig-n span{display:block;font-size:13.5px;color:var(--muted);margin-top:3px;line-height:1.4}.ig-n time{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.tc{text-align:center;padding:4px 0 2px}.tc-m{margin:0 0 6px;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--rubric,var(--muted))}
+.tc h4{margin:0 0 6px;font-family:var(--display);font-weight:600;font-size:24px;line-height:1.2}.tc h4 small{font-family:var(--sans);font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
+.tc-q{margin:0 0 8px;font-size:13.5px;font-style:italic;color:var(--muted)}.tc-x{margin:8px 4px 16px;font-family:var(--serif);font-size:18px;line-height:1.6;text-align:left}
+.tc-bt{display:flex;gap:10px;justify-content:center;margin-top:14px}.tc-bt .btn{min-width:150px}.tc-bt button[disabled]{opacity:.4}
+@media (prefers-reduced-motion:no-preference){.ig-r[open]>.ig-c{animation:lxTroca .34s ease-out}.tc h4,.tc-x{animation:lxTroca .28s ease-out}}
 </style>
 </head>
 <body class="booting">
@@ -994,7 +1026,7 @@ body.bible-mode{background:#1b1a1e}
       <p class="count" id="lx-count"></p>
     </div>
     <div class="head-actions">
-      <button class="icon-btn" id="lx-dia-btn" aria-label="Do dia: liturgia, Evangelho e santo" title="Do dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span class="lbl">Do dia</span></button>
+      <button class="icon-btn" id="lx-dia-btn" aria-label="Igreja: liturgia, santo, terço e Papa" title="Igreja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.4v3.2M10.7 3.9h2.6"/><path d="M6.6 12.2a5.4 5.4 0 0 1 10.8 0"/><path d="M4.2 12.2h15.6"/><path d="M5.8 12.2v6.9M9.6 12.2v6.9M14.4 12.2v6.9M18.2 12.2v6.9"/><path d="M3.6 19.6h16.8"/></svg><span class="lbl">Igreja</span></button>
       <button class="icon-btn" id="lx-bible" aria-label="Bíblia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg><span class="lbl">Escritura</span></button>
       <button class="icon-btn" id="lx-libset" aria-label="Aparência"><span class="aa" style="font-family:var(--display);font-weight:600;font-size:18px">Aa</span><span class="lbl">Aparência</span></button>
       <button class="icon-btn" id="lx-ars-btn" aria-label="Arsenal: argumentos das suas leituras" title="Arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span class="lbl">Arsenal</span></button>
@@ -1179,8 +1211,8 @@ body.bible-mode{background:#1b1a1e}
   </div>
 </div>
 <div class="sheet" id="lx-dia" hidden>
-  <div class="panel tall" role="dialog" aria-label="Do dia">
-    <h2>Do dia</h2>
+  <div class="panel tall" role="dialog" aria-label="Igreja">
+    <h2>Igreja</h2>
     <div id="lx-dial"></div>
   </div>
 </div>
@@ -1350,30 +1382,84 @@ async function diaBio(id){const k='lector-bio-'+id;try{const g=localStorage.getI
   const t=L.join('\n');try{if(t)localStorage.setItem(k,t);}catch(e){}return t;}
 function diaP(t){return diaSemNum(t).split(/\n+/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');}
 function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
+/* ---------- Igreja: o dia da Igreja em linhas calmas (cada uma abre e fecha; só o Evangelho vem aberto) ---------- */
+const IG_ABERTAS=new Set(['ev']);
+const igRow=(id,t,sub,corpo)=>corpo?'<details class="ig-r" data-r="'+id+'"'+(IG_ABERTAS.has(id)?' open':'')+'><summary><span class="ig-t">'+t+'</span>'+(sub?'<small class="ig-s">'+esc(sub)+'</small>':'')+'</summary><div class="ig-c">'+corpo+'</div></details>':'';
+const PAPA_LINKS=[['Audiência geral (quartas-feiras)','https://www.vatican.va/content/leo-xiv/pt/audiences.index.html'],['Angelus e Regina Caeli','https://www.vatican.va/content/leo-xiv/pt/angelus.index.html'],['Mensagens do Papa','https://www.vatican.va/content/leo-xiv/pt/messages.index.html'],['O Papa no Vatican News','https://www.vaticannews.va/pt/papa.html'],['A Igreja no mundo · Vatican News','https://www.vaticannews.va/pt/igreja.html']];
+const MAIS_LINKS=[['Palavra do dia e homilia · Vatican News','https://www.vaticannews.va/pt/palavra-do-dia.html'],['Liturgia diária · Canção Nova','https://liturgia.cancaonova.com/pb/'],['Liturgia diária · CNBB','https://www.cnbb.org.br/liturgia-diaria/']];
+const igLinks=L=>'<div class="ig-l">'+L.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>').join('')+'</div>';
 async function renderDia(){const el=$('#lx-dial');
   if(navigator.onLine===false&&!diaCache){el.innerHTML='<p class="dia-st">Sem internet. As leituras do dia precisam de conexão.</p>';return;}
   if(!diaCache)el.innerHTML='<p class="dia-st">Buscando as leituras de hoje…</p>';
   const o=await diaBusca(),L=o.lit,loc=liturgia(),um=a=>(a&&a[0])||null;
-  let h0='<header class="dia-top" style="--c:'+loc.cor+'"><small>'+dataLonga()+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3>'+(L&&L.cor?'<span class="dia-cor"><i></i>Cor litúrgica: '+esc(String(L.cor).toLowerCase())+'</span>':'')+'</header>';
-  let h=h0+planoHTML();
-  if(!L&&!o.ev&&!o.santo&&!o.c){el.innerHTML=h+'<p class="dia-st">Não consegui buscar as leituras agora. Tente de novo daqui a pouco.</p><button class="ghost" id="lx-dia-de-novo">Tentar de novo</button>';
-    $('#lx-dia-de-novo').onclick=()=>{diaCache=null;renderDia();};return;}
+  const cab='<header class="dia-top" style="--c:'+loc.cor+'"><small>'+dataLonga()+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3>'+(L&&L.cor?'<span class="dia-cor"><i></i>Cor litúrgica: '+esc(String(L.cor).toLowerCase())+'</span>':'')+'</header>';
+  const R=[];
+  // Evangelho e leituras
+  let leit='',refEv='';
+  if(L){const ev=um(L.leituras.evangelho),p1=um(L.leituras.primeiraLeitura),sl=um(L.leituras.salmo),p2=um(L.leituras.segundaLeitura);refEv=ev?ev.referencia:'';
+    if(ev)leit+=diaSec('Evangelho',ev.referencia,(ev.titulo?'<p class="dia-ti">'+esc(ev.titulo)+'</p>':'')+diaP(ev.texto),true);
+    if(p1)leit+=diaSec('Primeira leitura',p1.referencia,(p1.titulo?'<p class="dia-ti">'+esc(p1.titulo)+'</p>':'')+diaP(p1.texto));
+    if(sl)leit+=diaSec('Salmo',sl.referencia,(sl.refrao?'<p class="dia-ti">℟. '+esc(sl.refrao)+'</p>':'')+diaP(sl.texto));
+    if(p2)leit+=diaSec('Segunda leitura',p2.referencia,(p2.titulo?'<p class="dia-ti">'+esc(p2.titulo)+'</p>':'')+diaP(p2.texto));
+    if(L.oracoes&&L.oracoes.coleta)leit+=diaSec('Oração do dia','',diaP(L.oracoes.coleta));
+  }else if(o.ev){leit=diaSec('Evangelho',o.evRef,diaP(o.ev),true);refEv=o.evRef||'';}
+  R.push(igRow('ev','Leituras de hoje',refEv?'Evangelho · '+refEv:'',leit));
+  // Santo do dia
   const SS=o.santos&&o.santos.length?o.santos:String(o.santo||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(n=>({nome:n,id:''})),hoje=new Date(),mm=String(hoje.getMonth()+1).padStart(2,'0'),dd=String(hoje.getDate()).padStart(2,'0');
-  if(SS.length)h+='<section class="dia-santo"><small>'+(SS.length>1?'Santos do dia':'Santo do dia')+'</small>'+SS.map(s=>s.id?'<details class="dia-bio" data-id="'+esc(s.id)+'"><summary>'+esc(s.nome)+'</summary><div class="dia-tx"><p class="dia-st">Buscando a história…</p></div></details>':'<div>'+esc(s.nome)+'</div>').join('')+'<p class="dia-mais"><a href="https://www.vaticannews.va/pt/santo-do-dia/'+mm+'/'+dd+'.html" target="_blank" rel="noopener">Mais sobre os santos de hoje no Vatican News</a></p></section>';
-  if(L){const ev=um(L.leituras.evangelho),p1=um(L.leituras.primeiraLeitura),sl=um(L.leituras.salmo),p2=um(L.leituras.segundaLeitura);
-    if(ev)h+=diaSec('Evangelho',ev.referencia,(ev.titulo?'<p class="dia-ti">'+esc(ev.titulo)+'</p>':'')+diaP(ev.texto),true);
-    if(p1)h+=diaSec('Primeira leitura',p1.referencia,(p1.titulo?'<p class="dia-ti">'+esc(p1.titulo)+'</p>':'')+diaP(p1.texto));
-    if(sl)h+=diaSec('Salmo',sl.referencia,(sl.refrao?'<p class="dia-ti">℟. '+esc(sl.refrao)+'</p>':'')+diaP(sl.texto));
-    if(p2)h+=diaSec('Segunda leitura',p2.referencia,(p2.titulo?'<p class="dia-ti">'+esc(p2.titulo)+'</p>':'')+diaP(p2.texto));
-    if(L.oracoes&&L.oracoes.coleta)h+=diaSec('Oração do dia','',diaP(L.oracoes.coleta));
-  }else if(o.ev)h+=diaSec('Evangelho',o.evRef,diaP(o.ev),true);
-  if(o.c)h+=diaSec('Meditação',o.ca,(o.ct?'<p class="dia-ti">'+esc(o.ct)+'</p>':'')+diaP(o.c),!L&&!o.ev);
-  h+='<section class="dia-mais2"><small>Mais para hoje</small><a href="https://www.vaticannews.va/pt/palavra-do-dia.html" target="_blank" rel="noopener">Palavra do dia e homilia · Vatican News</a><a href="https://liturgia.cancaonova.com/pb/" target="_blank" rel="noopener">Liturgia diária · Canção Nova</a><a href="https://www.cnbb.org.br/liturgia-diaria/" target="_blank" rel="noopener">Liturgia diária · CNBB</a><p class="note" style="margin:8px 0 0">As homilias são dos seus autores: o Lector abre o site deles.</p></section>';
-  h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santos, histórias e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>.</p>';
+  if(SS.length)R.push(igRow('santo',SS.length>1?'Santos do dia':'Santo do dia',SS[0].nome.replace(/,.*$/,''),
+    SS.map(x=>x.id?'<details class="dia-bio" data-id="'+esc(x.id)+'"><summary>'+esc(x.nome)+'</summary><div class="dia-tx"><p class="dia-st">Buscando a história…</p></div></details>':'<div class="dia-nome">'+esc(x.nome)+'</div>').join('')+'<p class="dia-mais"><a href="https://www.vaticannews.va/pt/santo-do-dia/'+mm+'/'+dd+'.html" target="_blank" rel="noopener">Mais sobre os santos de hoje no Vatican News</a></p>'));
+  // Meditação
+  if(o.c)R.push(igRow('med','Meditação',o.ca?String(o.ca).replace(/\s*\(.*$/,'').replace(/,.*$/,''):'',(o.ct?'<p class="dia-ti">'+esc(o.ct)+'</p>':'')+diaP(o.c)+(o.ca?'<p class="dia-ti" style="margin-top:6px">'+esc(o.ca)+'</p>':'')));
+  // Terço
+  R.push(igRow('terco','Terço de hoje','Mistérios '+tercoNome(),'<div id="lx-terco"></div>'));
+  // Plano de leitura
+  R.push(igRow('plano','Plano de leitura',planoSub(),planoHTML()));
+  // O Papa e a Igreja
+  R.push(igRow('papa','O Papa e a Igreja','notícias e mensagens','<div id="lx-ig-news"><p class="dia-st">Buscando as notícias…</p></div>'+igLinks(PAPA_LINKS)));
+  // Mais
+  R.push(igRow('mais','Mais para hoje','homilias e liturgia em outros sites',igLinks(MAIS_LINKS)+'<p class="note" style="margin:8px 0 0">As homilias são dos seus autores: o Lector abre o site deles.</p>'));
+  let h=cab+R.join('');
+  if(!L&&!o.ev&&!o.santo&&!o.c)h+='<p class="dia-st">Não consegui buscar as leituras agora.</p><button class="ghost" id="lx-dia-de-novo">Tentar de novo</button>';
+  h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santos, histórias e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>. Notícias e mensagens: <a href="https://www.vaticannews.va/pt.html" target="_blank" rel="noopener">Vatican News</a>.</p>';
   el.innerHTML=h;
+  const de=$('#lx-dia-de-novo');if(de)de.onclick=()=>{diaCache=null;renderDia();};
+  tercoDesenha();
+  el.querySelectorAll('details.ig-r').forEach(d=>d.addEventListener('toggle',()=>{const id=d.dataset.r;if(d.open){IG_ABERTAS.add(id);if(id==='papa')igNoticias();}else IG_ABERTAS.delete(id);}));
+  if(IG_ABERTAS.has('papa'))igNoticias();
   el.querySelectorAll('details.dia-bio').forEach(dt=>dt.addEventListener('toggle',async()=>{if(!dt.open||dt.dataset.ok)return;dt.dataset.ok='1';const box=dt.querySelector('.dia-tx');
     try{const t=await diaBio(dt.dataset.id);box.innerHTML=t?t.split(/\n+/).map(x=>'<p>'+esc(x)+'</p>').join(''):'<p class="dia-st">Não encontrei a história agora.</p>';}
     catch(e){dt.dataset.ok='';box.innerHTML='<p class="dia-st">Não consegui buscar agora. Toque de novo.</p>';}}));}
+/* notícias do Papa e da Igreja: vêm pela função "igreja" do cofre (os sites do Vaticano não deixam o app ler direto) */
+const dataCurta=t=>{const d=new Date(t);return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});};
+async function igNoticias(){const box=$('#lx-ig-news');if(!box||box.dataset.ok)return;box.dataset.ok='1';
+  try{const j=await (await sbReq('/functions/v1/igreja?tipo=papa')).json(),it=(j.itens||[]).slice(0,6);if(!it.length)throw new Error('vazio');
+    box.innerHTML=it.map(n=>'<a class="ig-n" href="'+esc(n.link)+'" target="_blank" rel="noopener"><b>'+esc(n.titulo)+'</b><span>'+esc(String(n.resumo||'').slice(0,130))+'…</span><time>'+dataCurta(n.data)+'</time></a>').join('')+'<p class="note" style="margin:6px 0 10px">Do Vatican News. Toque para ler a matéria inteira no site.</p>';
+  }catch(e){box.dataset.ok='';console.warn('Lector · notícias da Igreja:',e);box.innerHTML='<p class="dia-st">As notícias aparecem aqui depois que a função “igreja” for ativada no cofre (um passo único). Enquanto isso, os links abaixo abrem direto no site.</p>';}}
+/* ---------- Terço guiado: um passo por vez, com a oração na tela ---------- */
+const TO={cruz:'Pelo sinal da Santa Cruz, livrai-nos, Deus, nosso Senhor, dos nossos inimigos. Em nome do Pai e do Filho e do Espírito Santo. Amém.',
+  credo:'Creio em Deus Pai todo-poderoso, criador do céu e da terra. E em Jesus Cristo, seu único Filho, nosso Senhor, que foi concebido pelo poder do Espírito Santo, nasceu da Virgem Maria, padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado, desceu à mansão dos mortos, ressuscitou ao terceiro dia, subiu aos céus, está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo, na santa Igreja Católica, na comunhão dos santos, na remissão dos pecados, na ressurreição da carne, na vida eterna. Amém.',
+  pai:'Pai nosso, que estais nos céus, santificado seja o vosso nome; venha a nós o vosso reino; seja feita a vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje; perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido; e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.',
+  ave:'Ave, Maria, cheia de graça, o Senhor é convosco; bendita sois vós entre as mulheres, e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora da nossa morte. Amém.',
+  gloria:'Glória ao Pai e ao Filho e ao Espírito Santo, como era no princípio, agora e sempre. Amém.',
+  jesus:'Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o céu e socorrei principalmente as que mais precisarem.',
+  salve:'Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva; a vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei; e depois deste desterro mostrai-nos Jesus, bendito fruto do vosso ventre, ó clemente, ó piedosa, ó doce sempre Virgem Maria. Rogai por nós, santa Mãe de Deus, para que sejamos dignos das promessas de Cristo. Amém.'};
+const TERCO_MIST={Gozosos:['A Anunciação do Anjo a Maria','A Visitação de Maria a Isabel','O Nascimento de Jesus em Belém','A Apresentação do Menino Jesus no Templo','A perda e o encontro do Menino Jesus no Templo'],
+  Luminosos:['O Batismo de Jesus no Jordão','A auto-revelação de Jesus nas bodas de Caná','O anúncio do Reino de Deus e o convite à conversão','A Transfiguração de Jesus','A instituição da Eucaristia'],
+  Dolorosos:['A agonia de Jesus no Horto das Oliveiras','A flagelação de Jesus','A coroação de espinhos','Jesus carrega a cruz até o Calvário','A crucifixão e a morte de Jesus'],
+  Gloriosos:['A Ressurreição de Jesus','A Ascensão de Jesus ao céu','A vinda do Espírito Santo sobre os Apóstolos','A Assunção de Maria ao céu','A coroação de Maria no céu']};
+const tercoNome=()=>['Gloriosos','Gozosos','Dolorosos','Gloriosos','Luminosos','Dolorosos','Gozosos'][new Date().getDay()];
+function tercoPassos(){const M=TERCO_MIST[tercoNome()],P=[];
+  P.push({t:'Sinal da cruz',x:TO.cruz},{t:'Credo',x:TO.credo},{t:'Pai-Nosso',x:TO.pai});
+  ['Pelo aumento da fé','Pelo aumento da esperança','Pelo aumento da caridade'].forEach((q,i)=>P.push({t:'Ave-Maria',n:(i+1)+' de 3',q,x:TO.ave}));
+  P.push({t:'Glória',x:TO.gloria});
+  M.forEach((mi,k)=>{const m=(k+1)+'º mistério · '+mi;P.push({t:'Pai-Nosso',x:TO.pai,m});for(let a=1;a<=10;a++)P.push({t:'Ave-Maria',n:a+' de 10',x:TO.ave,m});P.push({t:'Glória',x:TO.gloria,m},{t:'Ó meu Jesus',x:TO.jesus,m});});
+  P.push({t:'Salve Rainha',x:TO.salve},{t:'Terço concluído',x:'Amém. Que Nossa Senhora interceda por você e por quem você ama.'});return P;}
+function tercoIdx(P){let st={};try{st=JSON.parse(localStorage.getItem('lector-terco')||'{}');}catch(e){}return st.d===dayKey(Date.now())?Math.min(Math.max(0,st.i||0),P.length-1):0;}
+function tercoDesenha(){const box=$('#lx-terco');if(!box)return;const P=tercoPassos(),i=tercoIdx(P),p=P[i],fim=i>=P.length-1;
+  box.innerHTML='<div class="tc"><p class="tc-m">'+esc(p.m||'Mistérios '+tercoNome())+'</p><h4>'+esc(p.t)+(p.n?' <small>'+p.n+'</small>':'')+'</h4>'+(p.q?'<p class="tc-q">'+esc(p.q)+'</p>':'')+'<p class="tc-x">'+esc(p.x)+'</p><div class="gbar"><i style="width:'+Math.round(i/(P.length-1)*100)+'%"></i></div>'+
+    '<div class="tc-bt"><button class="ghost" data-terco="volta"'+(i?'':' disabled')+'>Voltar</button><button class="btn" data-terco="prox">'+(fim?'Recomeçar':'Continuar')+'</button></div></div>';}
+$('#lx-dial').addEventListener('click',e=>{const b=e.target.closest('[data-terco]');if(!b)return;const P=tercoPassos();let i=tercoIdx(P);
+  i=b.dataset.terco==='volta'?Math.max(0,i-1):(i>=P.length-1?0:i+1);try{localStorage.setItem('lector-terco',JSON.stringify({d:dayKey(Date.now()),i}));}catch(x){}tercoDesenha();});
 $('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');renderDia();};
 
 /* ---------- Diagnóstico e versão: o app guarda os últimos avisos e erros para você poder ver (Aa > Diagnóstico) ---------- */
@@ -1454,6 +1540,7 @@ function planoCaps(p){const I=window.lucInfo;if(!I)return[];const ab=I.BOOKS.map
   for(const i of ids)for(let c=1;c<=I.CH[i];c++)out.push([i,c]);return out;}
 function planoDia(p,d){const L=planoCaps(p),T=L.length,a=Math.floor(d*T/p.dias),z=Math.floor((d+1)*T/p.dias);return L.slice(a,Math.max(a+1,z));}
 function planoRot(tr){const I=window.lucInfo,g=[];for(const [b,c] of tr){const l=g[g.length-1];if(l&&l.b===b&&c===l.z+1)l.z=c;else g.push({b,a:c,z:c});}return g.map(x=>I.BOOKS[x.b][0]+' '+(x.a===x.z?x.a:x.a+'–'+x.z)).join(' · ');}
+function planoSub(){if(!window.lucInfo)return '';const sp=S.plano,p=sp&&PLANOS.find(x=>x.id===sp.id);if(!p)return 'escolha um plano';const fei=new Set(sp.fei||[]);let d=0;while(fei.has(d)&&d<p.dias)d++;return d>=p.dias?'concluído':p.nome+' · leitura '+(d+1)+' de '+p.dias;}
 function planoHTML(){if(!window.lucInfo)return '';const sp=S.plano,p=sp&&PLANOS.find(x=>x.id===sp.id);
   if(!p)return '<section class="dia-plano"><small>Plano de leitura</small><p class="note" style="margin:6px 0 10px">Leia a Bíblia por partes pequenas, no seu ritmo. O plano espera por você: não cobra os dias perdidos.</p><div class="seg">'+PLANOS.map(x=>'<button data-plano="'+x.id+'">'+esc(x.nome)+' · '+x.dias+' dias</button>').join('')+'</div></section>';
   const fei=new Set(sp.fei||[]);let d=0;while(fei.has(d)&&d<p.dias)d++;
@@ -1626,9 +1713,13 @@ async function renderPdf(buf,page){
   page.innerHTML='';page.appendChild(wrap);
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)drawPage(e.target,doc);}),{root:page,rootMargin:'900px 0px'});
   wrap.querySelectorAll('.pg').forEach(d=>io.observe(d));cur.io=io;
+  /* páginas a mais de ~3000 px da tela devolvem a memória (o desenho volta sozinho quando a página se aproxima) */
+  const liberaIo=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting&&e.target.dataset.done)liberaPagina(e.target);}),{root:page,rootMargin:'3000px 0px'});
+  wrap.querySelectorAll('.pg').forEach(d=>liberaIo.observe(d));cur.liberaIo=liberaIo;
   cur.toc=[];
   try{const ol=await doc.getOutline();if(ol&&ol.length){const flat=[];const walk=(items,depth)=>items.forEach(it=>{flat.push({label:it.title,dest:it.dest,depth});if(it.items&&it.items.length&&depth<2)walk(it.items,depth+1);});walk(ol,0);cur.toc=flat;}}catch(e){}
 }
+function liberaPagina(d){d.querySelectorAll('canvas').forEach(c=>{try{c.width=1;c.height=1;}catch(x){}c.remove();});d.querySelectorAll('.textLayer,.hlbox').forEach(x=>x.remove());delete d.dataset.done;}
 async function drawPage(d,doc){
   if(d.dataset.done||!cur||cur.pdf!==doc)return;d.dataset.done='1';
   const gen=cur.gen;
@@ -1690,7 +1781,7 @@ async function renderLibrary(){
   document.querySelectorAll('#lx-filters button[data-f]').forEach(b=>{b.classList.toggle('on',b.dataset.f===filter);b.querySelector('small').textContent=n[b.dataset.f]||'';});
   $('#lx-count').textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'Sua biblioteca de bolso';
   const list0=filter==='all'?books:books.filter(b=>b.status===filter),list=colSel?list0.filter(b=>(b.cols||[]).includes(colSel)):list0;
-  {const cb=$('#lx-cbtn');if(cb){cb.textContent=colSel?'Coleção: '+colSel+' ✕':'Coleções';cb.classList.toggle('sel',!!colSel);}}
+  {const cb=$('#lx-cbtn');if(cb){cb.textContent=colSel?'Coleção: '+colSel+' ✕':'Coleções';cb.classList.toggle('sel',!!colSel);cb.hidden=!colSel;}}
   const shelf=$('#lx-shelf');mostraCofre();const C=caraAtiva();caraTopo(C,books);
   {const chave=filter+'|'+(S.layout||'')+'|'+(S.cara||'');if(renderLibrary.k!==chave){renderLibrary.k=chave;shelf.classList.remove('entra');void shelf.offsetWidth;shelf.classList.add('entra');}}
   if(!books.length){shelf.innerHTML='<div class="empty"><h2>Sua estante espera o primeiro livro</h2><p>Traga um EPUB, PDF ou TXT do seu aparelho. Ele fica guardado aqui e acompanha você.</p><button class="add" data-act="add">Adicionar livro</button></div>';return;}
@@ -1783,13 +1874,13 @@ async function openBook(id){telaCheiaCelular();
     else if(book.type==='pdf')await renderPdf(file.data,page);
     else renderTxt(file.data,page);
     if(book.type!=='pdf'){pintaOutros();(book.highlights||[]).forEach(h=>{try{paintHL(h);}catch(e){}});marcaReacoes();}else pintaOutros(null,true);
-    restorePos(book);
+    restorePos(book);setTimeout(preenchePg,2800);
     if(cur&&cur.pdf){const pdfRef=cur.pdf;pdfRef.getPageLabels().then(l=>{if(cur&&cur.pdf===pdfRef)cur.labelsP=l;}).catch(()=>{});}
   }catch(e){console.error(e);page.innerHTML='<p class="msg">Não foi possível abrir este arquivo. Ele pode estar danificado ou protegido contra cópia.</p>';}
 }
 async function closeBook(){try{if(fsAuto&&document.fullscreenElement){fsAuto=false;(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}catch(e){}
   if(!cur)return;try{localStorage.removeItem('lector-aberto');}catch(e){}await saveProgress();
-  if(cur.io)cur.io.disconnect();if(cur.pdf)try{cur.pdf.destroy();}catch(e){}
+  if(cur.io)cur.io.disconnect();if(cur.liberaIo)cur.liberaIo.disconnect();if(cur.pdf)try{cur.pdf.destroy();}catch(e){}
   tick();await saveProgress();cur=null;$('#lx-hlbar').hidden=true;$('#lx-reader').classList.remove('focus');page.innerHTML='';$('#lx-reader').hidden=true;document.body.style.overflow='';renderLibrary();
 }
 async function saveProgress(){
@@ -2013,8 +2104,14 @@ window.addEventListener('dragenter',e=>{if(e.dataTransfer&&[...e.dataTransfer.ty
 window.addEventListener('dragleave',()=>{dragN=Math.max(0,dragN-1);if(!dragN)$('#lx-drop').hidden=true;});
 window.addEventListener('dragover',e=>e.preventDefault());
 window.addEventListener('drop',e=>{e.preventDefault();dragN=0;$('#lx-drop').hidden=true;const f=[...(e.dataTransfer?e.dataTransfer.files:[])];if(f.length&&!cur)addFiles(f);});
-window.addEventListener('pagehide',saveProgress);
-document.addEventListener('visibilitychange',async()=>{if(document.hidden){await saveProgress();flushSync();}});
+/* o Android pode fechar o app em segundo plano a qualquer momento: a posição também vai, na hora, para um registro que não depende de espera */
+let gpT=0;
+function guardaPos(){if(!cur||restoring||!page.firstElementChild||page.querySelector('.msg'))return;
+  try{const o={id:cur.book.id,ts:Date.now()};if(cur.pdf){const t=topPage();if(t){o.n=t.n;o.off=t.off;}}else o.f=frac();localStorage.setItem('lector-pos',JSON.stringify(o));}catch(e){}}
+page.addEventListener('scroll',()=>{clearTimeout(gpT);gpT=setTimeout(guardaPos,400);},{passive:true});
+document.addEventListener('freeze',guardaPos);
+window.addEventListener('pagehide',()=>{guardaPos();saveProgress();});
+document.addEventListener('visibilitychange',async()=>{if(document.hidden){guardaPos();await saveProgress();flushSync();}});
 
 /* ---------- Diário ---------- */
 let lastTick=0,lastAct=0,tickN=0;
@@ -2208,7 +2305,7 @@ window.addEventListener('orientationchange',()=>setTimeout(replaceBar,300));
 page.addEventListener('contextmenu',e=>{e.preventDefault();});
 function addHL(p,color){
   const b=cur.book;b.highlights=b.highlights||[];
-  let h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),key:p.key,s:p.s,e:p.e,color,text:p.text,note:'',naNota:p.naNota?1:undefined,at:Date.now(),label:cur.pdf?'Página '+p.key.slice(1):p.key==='txt'?'':(cur.labels[p.key]||''),order:cur.pdf?+p.key.slice(1):p.key==='txt'?0:Object.keys(cur.map).indexOf(p.key)};
+  let h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),key:p.key,s:p.s,e:p.e,color,text:p.text,note:'',naNota:p.naNota?1:undefined,at:Date.now(),label:cur.pdf?'Página '+p.key.slice(1):p.key==='txt'?'':(cur.labels[p.key]||''),pg:cur.pdf?undefined:Math.max(1,Math.round(frac()*(cur.letras=cur.letras||page.textContent.length)/1800)),order:cur.pdf?+p.key.slice(1):p.key==='txt'?0:Object.keys(cur.map).indexOf(p.key)};
   // marcação da mesma cor colada a outra (só espaço no meio, ou por cima): vira um bloco só
   const root=rootFor(h.key);
   if(root){const tudo=textNodes(root).map(n=>n.data).join('');
@@ -2244,7 +2341,7 @@ function conversaDe(k){if(!cur)return [];const eu=sbUid(),l=[];
   for(const x of cur.book.respostas||[])if(x.k===k)l.push({quem:eu,nome:'Você',texto:x.texto,at:x.at});
   for(const o of cur.book.outros||[])for(const x of o.respL||[])if(x.k===k)l.push({quem:o.uid,nome:o.nome,texto:x.texto,at:x.at});
   return l.sort((a,b)=>a.at-b.at);}
-const REACOES=['👍','❤️','😂','😮','😢','🙏'],REAC_NOME={'👍':'Curti','❤️':'Amei','😂':'Haha','😮':'Uau','😢':'Triste','🙏':'Amém'};
+const SMILE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.4 14.2c.9 1.4 2.1 2.1 3.6 2.1s2.7-.7 3.6-2.1"/><circle cx="9.2" cy="10" r=".7" fill="currentColor"/><circle cx="14.8" cy="10" r=".7" fill="currentColor"/></svg>',REACOES=['👍','❤️','😂','😮','😢','🙏'],REAC_NOME={'👍':'Curti','❤️':'Amei','😂':'Haha','😮':'Uau','😢':'Triste','🙏':'Amém'};
 function reacoesDe(k){if(!cur)return [];const eu=sbUid(),l=[];
   for(const x of cur.book.reacoes||[])if(x.k===k)l.push({quem:eu,nome:'Você',e:x.e});
   for(const o of cur.book.outros||[])for(const x of o.reacL||[])if(x.k===k)l.push({quem:o.uid,nome:o.nome,e:x.e});
@@ -2252,10 +2349,11 @@ function reacoesDe(k){if(!cur)return [];const eu=sbUid(),l=[];
 function desenhaReacoes(box,k,posso,cor){const row=box.querySelector('.rx-row');if(!row)return;const eu=sbUid(),l=reacoesDe(k);
   const deles=l.filter(r=>r.quem!==eu),por={};for(const r of deles)(por[r.nome]=por[r.nome]||[]).push(r.e);
   row.style.setProperty('--c',cor||'#c2185b');
-  row.innerHTML=(posso?REACOES.map(e=>'<button data-rx="'+e+'" class="'+(l.some(r=>r.quem===eu&&r.e===e)?'on':'')+'" aria-label="'+REAC_NOME[e]+'" title="'+REAC_NOME[e]+'">'+e+'</button>').join(''):'')+
+  row.innerHTML=(posso?'<span class="rx-wrap"><button class="rx-add" data-rxabre="1" aria-label="Reagir" aria-expanded="false">'+SMILE+'</button><span class="rx-pop" role="group">'+REACOES.map(e=>'<button data-rx="'+e+'" class="'+(l.some(r=>r.quem===eu&&r.e===e)?'on':'')+'" aria-label="'+REAC_NOME[e]+'" title="'+REAC_NOME[e]+'">'+e+'</button>').join('')+'</span></span>'+REACOES.filter(e=>l.some(r=>r.quem===eu&&r.e===e)).map(e=>'<button data-rx="'+e+'" class="on mine" aria-label="Tirar '+REAC_NOME[e]+'">'+e+'</button>').join(''):'')+
     Object.keys(por).map(n=>'<span class="rx-de">'+por[n].join('')+' de '+esc(n)+'</span>').join('');
   row.hidden=!row.innerHTML;}
-document.querySelectorAll('.ho-conv .rx-row').forEach(row=>row.addEventListener('click',async ev=>{const b=ev.target.closest('button[data-rx]');if(!b||!cur)return;
+document.querySelectorAll('.ho-conv .rx-row').forEach(row=>row.addEventListener('click',async ev=>{const ta=ev.target.closest('button[data-rxabre]');if(ta){const w=ta.closest('.rx-wrap'),on=!w.classList.contains('aberto');w.classList.toggle('aberto',on);ta.setAttribute('aria-expanded',on?'true':'false');return;}
+  const b=ev.target.closest('button[data-rx]');if(!b||!cur)return;
   const box=row.closest('.ho-conv'),k=box.dataset.k,e=b.dataset.rx;if(!k)return;
   if(!sbUid()){toast('Entre na sua conta para reagir');return;}
   await hsGrava(cur.book.id,r=>{const l=r.reacoes||[],i=l.findIndex(x=>x.k===k&&x.e===e),t='x:'+k+'|'+e;if(i>=0){l.splice(i,1);r.apagados=(r.apagados||[]).concat(t);}else{l.push({k,e,at:Date.now()});r.apagados=(r.apagados||[]).filter(z=>z!==t);}r.reacoes=l;});
@@ -2347,6 +2445,11 @@ function wPar(runs,o){o=o||{};let pp='';
   if(o.recuo)pp+='<w:ind w:left="'+o.recuo+'" w:right="'+o.recuo+'"/>';
   if(o.centro)pp+='<w:jc w:val="center"/>';
   return '<w:p><w:pPr>'+pp+'</w:pPr>'+runs+'</w:p>';}
+/* destaques antigos de EPUB/TXT ganham a página aproximada (1800 letras = 1 página), pela posição da marca no livro */
+function preenchePg(){if(!cur||cur.pdf)return;const b=cur.book;let mudou=false;const letras=(cur.letras=cur.letras||page.textContent.length),pr=page.getBoundingClientRect();
+  for(const h of b.highlights||[]){if(h.pg)continue;const m=page.querySelector('mark.hl[data-h="'+h.id+'"]');if(!m)continue;
+    const y=(m.getBoundingClientRect().top-pr.top+page.scrollTop)/Math.max(1,page.scrollHeight);h.pg=Math.max(1,Math.round(y*letras/1800));mudou=true;}
+  if(mudou)put('books',b).catch(()=>{});}
 function hlLocal(b,h){if(/^p\d+$/.test(h.key||''))return 'p. '+h.key.slice(1);if(h.label)return h.label;return '';}
 async function exportHL(b){
   const hs=sortHL(b.highlights||[]);if(!hs.length){toast('Este livro ainda não tem destaques');return;}
@@ -3106,12 +3209,15 @@ function desenhaHist(){
   const temNota=h=>h.note&&String(h.note).trim();
   const filtrado=ev.filter(x=>HS_FILTRO==='tudo'||(HS_FILTRO==='eu'?x.quem===uid:HS_FILTRO==='outro'?x.quem!==uid:(x.tipo==='dia'&&x.hs.some(h=>temNota(h)||RESP[h.k]))));
   const titulo=l=>'<em>'+esc(l.meta.title||'')+'</em>';
-  const trecho=h=>'<p class="hs-tre" style="--hc:'+(HL_TINTA[h.color]||HL_TINTA.y)+'">“'+esc(String(h.text||'').trim())+'”'+(h.label?' <small>· '+esc(h.label)+'</small>':'')+'</p>';
+  const locH=h=>{const pdf=/^p\d+$/.test(h.key||''),l=[];if(h.label&&!(pdf&&/^Página/i.test(h.label)))l.push(h.label);if(pdf)l.push('p. '+h.key.slice(1));else if(h.pg)l.push('p. ~'+h.pg);return l.join(' · ');};
+  const trecho=(h,lid)=>{const abre=lid&&lid!==BIBLIA_ID&&h.id,loc=locH(h);return '<p class="hs-tre'+(abre?' ir':'')+'" style="--hc:'+(HL_TINTA[h.color]||HL_TINTA.y)+'"'+(abre?' data-abre="'+esc(lid)+'" data-hid="'+esc(h.id)+'" data-hk="'+esc(h.key||'')+'" role="button" tabindex="0"':'')+'>“'+esc(String(h.text||'').trim())+'”'+(loc?' <small>· '+esc(loc)+'</small>':'')+(abre?' <small class="hs-ir">ver no livro ›</small>':'')+'</p>';};
   const acoes=(h,dono,c)=>{const rs=RESP[h.k]||[],rx=REAC[h.k]||[],meu=e=>rx.some(r=>r.quem===uid&&r.e===e);
     let o='';
     if(rs.length)o+='<div class="nt-re">'+rs.map(r=>'<p style="--rc:'+corDe(r.quem)+'"><b>'+nome(r.quem)+'</b> '+esc(r.texto)+'<time>'+(dayKey(r.at)===dayKey(Date.now())?horaBR(r.at):new Date(r.at).toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))+'</time></p>').join('')+'</div>';
     const outros=rx.filter(r=>r.quem!==uid).map(r=>r.e).join('');
-    o+='<div class="nt-ac" style="--c:'+c+'">'+(dono!==uid?REACOES.map(e=>'<button data-reage="'+e+'" data-k="'+h.k+'" class="'+(meu(e)?'on':'')+'" aria-label="'+REAC_NOME[e]+'">'+e+'</button>').join(''):'')+
+    const minhas=rx.filter(r=>r.quem===uid).map(r=>r.e);
+    o+='<div class="nt-ac" style="--c:'+c+'">'+(dono!==uid?'<span class="rx-wrap"><button class="rx-add" data-rxabre="1" aria-label="Reagir" aria-expanded="false">'+SMILE+'</button><span class="rx-pop" role="group" aria-label="Reações">'+REACOES.map(e=>'<button data-reage="'+e+'" data-k="'+h.k+'" class="'+(meu(e)?'on':'')+'" aria-label="'+REAC_NOME[e]+'">'+e+'</button>').join('')+'</span></span>':'')+
+      minhas.map(e=>'<button data-reage="'+e+'" data-k="'+h.k+'" class="on mine" aria-label="Tirar '+REAC_NOME[e]+'">'+e+'</button>').join('')+
       (outros?'<span class="rx">'+outros+' de '+esc(nm[rx.find(r=>r.quem!==uid).quem]||'')+'</span>':'')+
       ((dono!==uid||rs.length)?'<button data-resp="'+h.k+'">Responder</button>':'')+'</div>';
     if(HS_RESP===h.k)o+='<div class="nt-form"><textarea id="lx-hsr" rows="2" placeholder="Escreva sua resposta…"></textarea><button data-envia="'+h.k+'">Enviar</button></div>';
@@ -3124,10 +3230,10 @@ function desenhaHist(){
       const meta=[x.ms>=60000?minutos(x.ms):'',!bib&&n?(n===1?'1 marcação':n+' marcações'):''].filter(Boolean).join(' · ');
       cab=verbo+' '+titulo(x.l)+(x.terminou?' 🎉':'')+(meta?' <span class="m">· '+meta+'</span>':'');
       peq=!n;
-      corpo=notas.map(h=>'<div class="nt-nota"><p>'+esc(String(h.note).trim())+'</p>'+trecho(h)+acoes(h,x.quem,c)+'</div>').join('');
+      corpo=notas.map(h=>'<div class="nt-nota"><p>'+esc(String(h.note).trim())+'</p>'+trecho(h,x.l.id)+acoes(h,x.quem,c)+'</div>').join('');
       if(marcas.length){const vis=marcas.slice(0,notas.length?1:2),resto=marcas.slice(vis.length);
-        corpo+=vis.map(h=>'<div class="nt-tr">'+trecho(h)+acoes(h,x.quem,c)+'</div>').join('');
-        if(resto.length)corpo+='<details class="hs-mais"><summary>ver mais '+(resto.length===1?'1 marcação':resto.length+' marcações')+'</summary>'+resto.map(h=>'<div class="nt-tr">'+trecho(h)+acoes(h,x.quem,c)+'</div>').join('')+'</details>';}}
+        corpo+=vis.map(h=>'<div class="nt-tr">'+trecho(h,x.l.id)+acoes(h,x.quem,c)+'</div>').join('');
+        if(resto.length)corpo+='<details class="hs-mais"><summary>ver mais '+(resto.length===1?'1 marcação':resto.length+' marcações')+'</summary>'+resto.map(h=>'<div class="nt-tr">'+trecho(h,x.l.id)+acoes(h,x.quem,c)+'</div>').join('')+'</details>';}}
     return '<div class="nt-i'+(peq?' peq':'')+'" style="--c:'+c+'"><div class="nt-h"><span><b class="q">'+nome(x.quem)+'</b> '+cab+'</span><time>'+hora+'</time></div>'+corpo+'</div>';};
   let dia=null,qtd=0;const MAX=300;
   for(const x of filtrado){if(qtd>=MAX)break;const d=dayKey(x.t);
@@ -3151,7 +3257,14 @@ async function hsGrava(livroId,muda){const uid=sbUid();if(!uid)return;
   e.registro={...e.registro,respostas:reg.respostas||[],reacoes:reg.reacoes||[],biblia:reg.biblia||e.registro.biblia};
 }
 function hsLivroDe(k){const [dono,at]=k.split('|');const e=(HS.estados||[]).find(x=>x.user_id===dono&&(((x.registro||{}).highlights||[]).some(h=>String(h.at)===at)||((x.registro||{}).biblia||[]).some(h=>String(h.at)===at)));return e&&e.livro_id;}
-$('#lx-hs').addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;
+async function abreNoLivro(id,hid,key){closeSheets();const hs=$('#lx-hist');if(hs)hs.hidden=true;await openBook(id);
+  setTimeout(()=>{const mk=page.querySelector('mark[data-h="'+hid+'"]');if(mk)mk.scrollIntoView({block:'center'});else if(/^p\d+$/.test(key||''))goPage(+key.slice(1));},1000);}
+$('#lx-hs').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-abre]')){e.preventDefault();e.target.click();}});
+$('#lx-hs').addEventListener('click',async ev=>{
+  const ab=ev.target.closest('[data-abre]');if(ab&&!ev.target.closest('button')){abreNoLivro(ab.dataset.abre,ab.dataset.hid,ab.dataset.hk);return;}
+  if(!ev.target.closest('.rx-wrap'))ev.currentTarget.querySelectorAll('.rx-wrap.aberto').forEach(w=>w.classList.remove('aberto'));
+  const rxa=ev.target.closest('button[data-rxabre]');if(rxa){const w=rxa.closest('.rx-wrap'),on=!w.classList.contains('aberto');ev.currentTarget.querySelectorAll('.rx-wrap.aberto').forEach(x=>x.classList.remove('aberto'));w.classList.toggle('aberto',on);rxa.setAttribute('aria-expanded',on?'true':'false');return;}
+  const b=ev.target.closest('button');if(!b)return;
   if(b.dataset.filtro){HS_FILTRO=b.dataset.filtro;HS_RESP=null;desenhaHist();return;}
   if(b.dataset.resp){HS_RESP=HS_RESP===b.dataset.resp?null:b.dataset.resp;desenhaHist();return;}
   const k=b.dataset.k||b.dataset.envia,id=k&&hsLivroDe(k);if(!id)return;
@@ -3786,10 +3899,24 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
     // só volta para dentro do livro se ele estava aberto quando a página foi fechada/atualizada
     try{let ab=null;try{ab=localStorage.getItem('lector-aberto');}catch(e){}
-      const b=ab&&await get('books',ab);if(b)await openBook(b.id);else await renderLibrary();}catch(e){renderLibrary();}
+      const b=ab&&await get('books',ab);
+      if(b){try{const o=JSON.parse(localStorage.getItem('lector-pos')||'null');
+        if(o&&o.id===b.id&&o.ts>(b.lastRead||0)){if(o.n){b.topPage=o.n;b.topOff=o.off||0;}else if(typeof o.f==='number')b.progress=o.f;await put('books',b,true);}}catch(e){}
+        await openBook(b.id);}
+      else{await renderLibrary();let modo=null;try{modo=localStorage.getItem('lector-modo');}catch(e){}if(modo==='biblia'&&window.lucInfo)setTimeout(()=>window.lucInfo.abre(),60);}
+    }catch(e){renderLibrary();}
     document.body.classList.remove('booting');
   });
 });
+/* ---------- Voltar do celular: fecha a camada de cima (janela, livro, Escritura) em vez de fechar o app ---------- */
+try{history.replaceState({lx:0},'');history.pushState({lx:1},'');let saiu=0;
+  addEventListener('popstate',()=>{
+    const luc=$('#luc'),sh=document.querySelector('.sheet:not([hidden]):not(.gate)');
+    if(luc&&!luc.hidden&&window.lucInfo)window.lucInfo.fecha();
+    else if(sh)closeSheets();
+    else if(cur)closeBook();
+    else{if(Date.now()-saiu<2200){history.back();return;}saiu=Date.now();toast('Deslize de novo para sair');}
+    history.pushState({lx:1},'');});}catch(e){}
 /* ---------- Modo de desenvolvimento: recarga automática (só no servidor local, porta 8765) ---------- */
 if(location.port==='8765'){
   let v0=null;
@@ -4784,21 +4911,22 @@ async function sbEntrar(email,senha){
   sbGuarda(sbFixa(j));return j;}
 /* ---- Bíblias do cofre: ficam guardadas neste aparelho para abrir na hora (e sem internet); a internet só confere se mudou ---- */
 let lucLocalP=null,lucSyncP=null,lucDesenhou=false;
-function lucLocal(){return lucLocalP||(lucLocalP=(async()=>{TR=await idbAll();TR.sort((a,b)=>a.id<b.id?-1:1);return TR;})());}
-function lucSync(){return lucSyncP||(lucSyncP=(async()=>{
-  await lucLocal();const t=await sbToken();if(!t)return 0;let n=0;
+function lucLocal(){return lucLocalP||(lucLocalP=(async()=>{TR=await idbAll();TR.sort((a,b)=>a.id<b.id?-1:1);try{const ix=JSON.parse(localStorage.getItem("lector-bibver")||"{}");for(const t of TR)if(String(t.id).startsWith("nuvem-")&&t.ver)ix[t.id]=t.ver;localStorage.setItem("lector-bibver",JSON.stringify(ix));}catch(e){}return TR;})());}
+function lucSync(soGuardar){return lucSyncP||(lucSyncP=(async()=>{
+  if(!soGuardar)await lucLocal();const t=await sbToken();if(!t)return 0;let n=0;
   const h={apikey:SB_KEY,Authorization:"Bearer "+t};
   const r=await fetch(SB_URL+"/storage/v1/object/list/biblias",{method:"POST",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify({prefix:"",limit:100,sortBy:{column:"name",order:"asc"}})});
   if(!r.ok)return 0;
-  const lista=(await r.json()).filter(o=>/\.json$/i.test(o.name));
-  await Promise.all(lista.map(async o=>{const nome=o.name.replace(/\.json$/i,""),id="nuvem-"+nome,ver=String(o.updated_at||o.created_at||(o.metadata&&o.metadata.size)||"");
-    if(TR.some(x=>x.name===nome&&x.id!==id))return;
-    const velho=TR.find(x=>x.id===id);if(velho&&ver&&velho.ver===ver)return;
+  const lista=(await r.json()).filter(o=>/\.json$/i.test(o.name));let idx={};try{idx=JSON.parse(localStorage.getItem("lector-bibver")||"{}");}catch(e){}
+  const faz=async o=>{const nome=o.name.replace(/\.json$/i,""),id="nuvem-"+nome,ver=String(o.updated_at||o.created_at||(o.metadata&&o.metadata.size)||"");
+    if(!soGuardar&&TR.some(x=>x.name===nome&&x.id!==id))return;
+    const velho=soGuardar?null:TR.find(x=>x.id===id);if(ver&&(soGuardar?idx[id]===ver:(velho&&velho.ver===ver)))return;
     try{const rr=await fetch(SB_URL+"/storage/v1/object/authenticated/biblias/"+encodeURIComponent(o.name),{headers:h});if(!rr.ok)return;
       const books=parseJSON(await rr.json()),novo={id,name:nome,books,stats:stats(books),pv:PV,ext:"",fixa:true,ver};
-      const k=TR.findIndex(x=>x.id===id);if(k>=0)TR[k]=novo;else{TR.push(novo);TR.sort((a,b)=>a.id<b.id?-1:1);}
-      try{await idbPut(novo);}catch(e){}
-      n++;lucDepois(id);}catch(e){}}));
+      try{await idbPut(novo);idx[id]=ver;localStorage.setItem("lector-bibver",JSON.stringify(idx));}catch(e){}
+      if(!soGuardar){const k=TR.findIndex(x=>x.id===id);if(k>=0)TR[k]=novo;else{TR.push(novo);TR.sort((a,b)=>a.id<b.id?-1:1);}lucDepois(id);}
+      n++;}catch(e){}};
+  if(soGuardar){for(const o of lista)await faz(o);}else await Promise.all(lista.map(faz));
   return n;})().finally(()=>{lucSyncP=null;}));}
 const sbBiblias=()=>lucSync();
 /* uma Bíblia chegou ou mudou: atualiza a tela sem tirar a pessoa do lugar */
@@ -4843,7 +4971,7 @@ async function lucStart(){if(started)return;started=true;
   else render();
 }
 /* aquece em segundo plano: depois que a pessoa entra, as Bíblias já ficam prontas antes de ela abrir a Escritura */
-function lucAquecer(){if(!sbSess())return;setTimeout(()=>{lucLocal().then(()=>lucSync()).catch(()=>{});},2500);}
+function lucAquecer(){if(!sbSess())return;const c=navigator.connection;if(c&&(c.saveData||/^(slow-2g|2g)$/.test(c.effectiveType||'')))return;setTimeout(()=>{(window.requestIdleCallback||setTimeout)(()=>{lucSync(true).catch(()=>{});});},9000);}
 lucAquecer();addEventListener("lector-login",lucAquecer);
 
 /* ---------- integração com o Lector ---------- */
@@ -4851,16 +4979,16 @@ let from=null,libScroll=0,bibScroll=0,bodyOv="";
 function lucOpen(){
   if(!LROOT.hidden)return;
   libScroll=window.scrollY;bodyOv=document.body.style.overflow;document.body.style.overflow="";
-  document.body.classList.add("bible-mode");LROOT.hidden=false;
+  document.body.classList.add("bible-mode");LROOT.hidden=false;try{localStorage.setItem("lector-modo","biblia");}catch(e){}
   if(!started){lucStart();window.scrollTo(0,0);}else window.scrollTo(0,bibScroll);
 }
 function lucClose(){
   if(LROOT.hidden)return;
   bibScroll=window.scrollY;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();
-  LROOT.hidden=true;document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
+  LROOT.hidden=true;try{localStorage.removeItem("lector-modo");}catch(e){}document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
 }
 $("#lucBack").onclick=lucClose;
-window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();}};
+window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();},abre:()=>lucOpen(),fecha:()=>lucClose()};
 window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!LROOT.contains(e.target))e.stopPropagation();},true);
 document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen();}});
 
