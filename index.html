@@ -1599,7 +1599,7 @@ function congelaAltura(){let toque=false;try{toque=matchMedia('(pointer:coarse)'
   const r=document.documentElement.style;if(!r.getPropertyValue('--app-h'))r.setProperty('--app-h',alturaEst+'px');
   clearTimeout(alturaTimer);alturaTimer=setTimeout(()=>{alturaEst=innerHeight;r.removeProperty('--app-h');medeSeguro();try{restauraAncora();}catch(e){}},700);}
 medeSeguro();
-const tremor=()=>{medeSeguro();congelaAltura();try{if(csel)paintCsel();replaceBar();}catch(e){}};
+const tremor=()=>{if(window.visualViewport&&Math.abs(visualViewport.scale-1)>.01)return;
 addEventListener('resize',tremor);addEventListener('orientationchange',tremor);document.addEventListener('fullscreenchange',tremor);
 if(window.visualViewport){visualViewport.addEventListener('resize',tremor);}
 
