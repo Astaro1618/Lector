@@ -378,6 +378,7 @@ mark.trsel{background:color-mix(in srgb,var(--accent) 28%,transparent);color:inh
 .r-lock svg{width:21px;height:21px}.r-lock .fe{display:none}
 .reader.travado .r-lock{background:var(--accent);color:var(--on-accent)}.reader.travado .r-lock .ab{display:none}.reader.travado .r-lock .fe{display:inline}
 .reader.travado .r-page{overflow-x:hidden;touch-action:pan-y}
+.r-page.pdf-pz{touch-action:pan-x pan-y}   /* PDF: a pinça é tratada pelo app (zoom nítido), não pelo navegador */
 .r-page{overflow-anchor:none}   /* o navegador não pode mexer na rolagem sozinho quando o zoom muda o tamanho das páginas */
 .r-foot output{font-size:13px;color:var(--muted);min-width:6.5em;text-align:right;font-variant-numeric:tabular-nums}
 
@@ -1914,7 +1915,7 @@ async function openBook(id){telaCheiaCelular();
   $('#lx-reader').hidden=false;$('#lx-reader').classList.add('focus');document.body.style.overflow='hidden';animaLeitor();
   try{if(!localStorage.getItem('lector-hint')){localStorage.setItem('lector-hint','1');setTimeout(()=>toast('Toque no centro da tela para ver os controles'),900);}}catch(e){}
   page.innerHTML='<p class="msg">Abrindo…</p>';
-  page.style.setProperty('--z',book.type==='pdf'?(book.zoom||1):1);
+  page.style.setProperty('--z',book.type==='pdf'?(book.zoom||1):1);page.classList.toggle('pdf-pz',book.type==='pdf');
   try{
     if(book.type==='epub')await renderEpub(file.data,page);
     else if(book.type==='pdf')await renderPdf(file.data,page);
@@ -2129,6 +2130,13 @@ page.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!cur)return;e.prev
   const t=Date.now();if(t-fsWheelT<90||!e.deltaY)return;fsWheelT=t;const f=frac();S.fs=Math.max(14,Math.min(34,S.fs+(e.deltaY<0?1:-1)));saveSettings();applySettings();requestAnimationFrame(()=>setFrac(f));},{passive:false});
 /* travar a tela: só rola para cima e para baixo (bom para ler com zoom no celular) */
 $('#lx-lock').onclick=()=>{const R=$('#lx-reader'),on=R.classList.toggle('travado');$('#lx-lock').setAttribute('aria-pressed',on?'true':'false');toast(on?'Tela travada: só rola para cima e para baixo':'Tela destravada');};
+/* pinça de dois dedos no PDF: zoom ancorado entre os dedos; o redesenho nítido vem logo depois que os dedos saem */
+let pz=null;const pzD=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1;
+page.addEventListener('touchstart',e=>{if(cur&&cur.pdf&&e.touches.length===2)pz={d:pzD(e.touches),z:cur.book.zoom||1};else if(e.touches.length!==2)pz=null;},{passive:true});
+page.addEventListener('touchmove',e=>{if(!pz||!cur||!cur.pdf||e.touches.length!==2)return;e.preventDefault();
+  const t=e.touches;setZoom(pz.z*pzD(t)/pz.d,(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2,true);},{passive:false});
+page.addEventListener('touchend',e=>{if(e.touches.length<2)pz=null;},{passive:true});
+page.addEventListener('touchcancel',()=>{pz=null;},{passive:true});
 $('#lx-zm').onclick=()=>setZoom(((cur&&cur.book.zoom)||1)-.25);
 $('#lx-zp').onclick=()=>setZoom(((cur&&cur.book.zoom)||1)+.25);
 $('#lx-range').addEventListener('input',e=>{setFrac(e.target.value/1000);});
