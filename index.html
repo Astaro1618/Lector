@@ -2121,7 +2121,8 @@ function setZoom(z,cx,cy,adiar){if(!cur||!cur.pdf)return;z=Math.max(1,Math.min(4
   cur.book.zoom=z;page.style.setProperty('--z',z);$('#lx-zo').textContent=Math.round(z*100)+'%';try{fitTextLayers();}catch(e){}
   if(an){const r=an.d.getBoundingClientRect();page.scrollTop+=r.top+an.fy*r.height-y;page.scrollLeft+=r.left+an.fx*r.width-x;}
   clearTimeout(zoomT);zoomT=setTimeout(()=>{if(!cur||!cur.pdf)return;cur.gen=(cur.gen||0)+1;
-    page.querySelectorAll('.pg').forEach(d=>{d.querySelectorAll('canvas').forEach(c=>c.remove());delete d.dataset.done;cur.io.unobserve(d);cur.io.observe(d);});
+    page.querySelectorAll('.pg').forEach(d=>{delete d.dataset.done;   /* o desenho antigo fica até o novo ficar pronto: nada pisca nem some */
+    cur.io.unobserve(d);cur.io.observe(d);});
     put('books',cur.book).catch(lxErr);},adiar?250:0);}
 /* Ctrl + roda do mouse (e pinça do touchpad) dentro da leitura: em vez do zoom do navegador, que re-quebra a página e joga o texto para longe */
 let fsWheelT=0;
@@ -2199,6 +2200,12 @@ page.addEventListener('scroll',()=>{clearTimeout(gpT);gpT=setTimeout(guardaPos,4
 document.addEventListener('freeze',guardaPos);
 window.addEventListener('pagehide',()=>{guardaPos();saveProgress();});
 document.addEventListener('visibilitychange',async()=>{if(document.hidden){guardaPos();await saveProgress();flushSync();}});
+/* voltou de outro app / tela apagada: o Android pode ter descartado o desenho das páginas (ficam brancas). Redesenha as que aparecem, sem mexer na rolagem. */
+let volT=0;
+function recuperaPaginas(){if(!cur||!cur.pdf||!cur.io)return;cur.gen=(cur.gen||0)+1;page.querySelectorAll('.pg').forEach(d=>{delete d.dataset.done;cur.io.unobserve(d);cur.io.observe(d);});}
+function voltou(){clearTimeout(volT);volT=setTimeout(recuperaPaginas,250);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)voltou();});
+document.addEventListener('resume',voltou);addEventListener('pageshow',voltou);addEventListener('focus',voltou);
 
 /* ---------- Diário ---------- */
 let lastTick=0,lastAct=0,tickN=0;
@@ -2323,13 +2330,13 @@ function markTr(p){page.querySelectorAll('mark.trsel').forEach(unwrap);try{const
 const caixasPend=new Set();
 function redesenhaCaixas(pg){if(!pg)return;caixasPend.add(pg);clearTimeout(redesenhaCaixas.T);redesenhaCaixas.T=setTimeout(()=>{for(const g of caixasPend)caixasDe(g);caixasPend.clear();},30);}
 function caixasDe(pg){pg.querySelectorAll('.hlbox').forEach(x=>x.remove());const tl=pg.querySelector('.textLayer');if(!tl)return;
-  const base=pg.getBoundingClientRect(),gap=parseFloat(getComputedStyle(tl).getPropertyValue('--lgap'))||0;const grupos={};
+  const base=pg.getBoundingClientRect(),bw=base.width||1,bh=base.height||1,gap=parseFloat(getComputedStyle(tl).getPropertyValue('--lgap'))||0;const grupos={};
   for(const m of tl.querySelectorAll('mark.hl')){const id=m.dataset.h;for(const r of m.getClientRects()){if(r.width<1)continue;
     const g=(grupos[id]=grupos[id]||{c:m.dataset.c,ls:[]});let l=g.ls.find(q=>Math.abs(q.t-r.top)<r.height*.5);
     if(!l)g.ls.push(l={t:r.top,b:r.bottom,x0:r.left,x1:r.right});else{l.x0=Math.min(l.x0,r.left);l.x1=Math.max(l.x1,r.right);l.t=Math.min(l.t,r.top);l.b=Math.max(l.b,r.bottom);}}}
   const frag=document.createDocumentFragment();
   for(const [id,g] of Object.entries(grupos))for(const l of g.ls){const d=document.createElement('div');d.className='hlbox';d.dataset.h=id;d.dataset.c=g.c||'y';
-    d.style.cssText='left:'+(l.x0-base.left-1)+'px;top:'+(l.t-base.top-gap)+'px;width:'+(l.x1-l.x0+2)+'px;height:'+(l.b-l.t+2*gap)+'px';frag.appendChild(d);}
+    d.style.cssText='left:'+((l.x0-base.left-1)/bw*100)+'%;top:'+((l.t-base.top-gap)/bh*100)+'%;width:'+((l.x1-l.x0+2)/bw*100)+'%;height:'+((l.b-l.t+2*gap)/bh*100)+'%';frag.appendChild(d);}   /* em %: a faixa acompanha a página em qualquer zoom */
   pg.appendChild(frag);}
 function unwrap(m){const pg=m.closest&&m.closest('.textLayer')?m.closest('.pg'):null;const p=m.parentNode;if(!p)return;while(m.firstChild)p.insertBefore(m.firstChild,m);p.removeChild(m);p.normalize();if(pg)redesenhaCaixas(pg);}
 function paintHL(h){const root=rootFor(h.key);if(!root)return;if(root.classList&&root.classList.contains('textLayer'))redesenhaCaixas(root.closest('.pg'));wrapRange.pula=h.naNota?'svg,.lx-pf':'svg,.lx-pf,.lx-nota';const ms=wrapRange(root,h.s,h.e,()=>{const m=document.createElement('mark');m.className='hl'+(h.note?' noted':'');m.dataset.h=h.id;m.dataset.c=h.color;return m;});
