@@ -2200,6 +2200,12 @@ page.addEventListener('scroll',()=>{clearTimeout(gpT);gpT=setTimeout(guardaPos,4
 document.addEventListener('freeze',guardaPos);
 window.addEventListener('pagehide',()=>{guardaPos();saveProgress();});
 document.addEventListener('visibilitychange',async()=>{if(document.hidden){guardaPos();await saveProgress();flushSync();}});
+/* voltou de outro app / tela apagada: o Android pode ter descartado o desenho das páginas (ficam brancas). Redesenha as que aparecem, sem mexer na rolagem. */
+let volT=0;
+function recuperaPaginas(){if(!cur||!cur.pdf||!cur.io)return;cur.gen=(cur.gen||0)+1;page.querySelectorAll('.pg').forEach(d=>{delete d.dataset.done;cur.io.unobserve(d);cur.io.observe(d);});}
+function voltou(){clearTimeout(volT);volT=setTimeout(recuperaPaginas,250);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)voltou();});
+document.addEventListener('resume',voltou);addEventListener('pageshow',voltou);addEventListener('focus',voltou);
 
 /* ---------- Diário ---------- */
 let lastTick=0,lastAct=0,tickN=0;
