@@ -1016,6 +1016,18 @@ body.bible-mode{background:#1b1a1e}
 .tc-q{margin:0 0 8px;font-size:13.5px;font-style:italic;color:var(--muted)}.tc-x{margin:8px 4px 16px;font-family:var(--serif);font-size:18px;line-height:1.6;text-align:left}
 .tc-bt{display:flex;gap:10px;justify-content:center;margin-top:14px}.tc-bt .btn{min-width:150px}.tc-bt button[disabled]{opacity:.4}
 @media (prefers-reduced-motion:no-preference){.ig-r[open]>.ig-c{animation:lxTroca .34s ease-out}.tc h4,.tc-x{animation:lxTroca .28s ease-out}}
+/* ---------- Igreja em tela cheia: Home, abas por fonte e conteúdo ---------- */
+.sheet.ig-full .ig-p::before{display:none}
+.sheet.ig-full{align-items:stretch;background:var(--bg);z-index:30}
+.sheet.ig-full .ig-p{max-width:680px;height:100%;max-height:100vh;border-radius:0;padding:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.ig-h{display:flex;align-items:center;gap:6px;padding:calc(var(--sat,0px) + 8px) 12px 0}
+.ig-h h2{margin:0;font-family:var(--display);font-weight:600;font-size:22px}
+.ig-tabs{display:flex;gap:22px;padding:6px 20px 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;flex:none}
+.ig-tabs::-webkit-scrollbar{display:none}
+.ig-tabs button{padding:10px 0;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-weight:500}
+.ig-tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.sheet.ig-full #lx-dial{flex:1;min-height:0;overflow-y:auto;padding:12px 20px calc(var(--sab,0px) + 28px);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ig-sec-t{margin:16px 0 4px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 /* ---------- Pergunta do fim do livro ---------- */
 #lx-fim{position:absolute;left:50%;bottom:calc(var(--sab,0px) + 76px);transform:translate(-50%,14px);z-index:6;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--pill,#26231f);color:var(--pill-ink,#f4efe6);box-shadow:0 8px 26px rgba(0,0,0,.28);font-size:15px;opacity:0;pointer-events:none;max-width:calc(100% - 20px);transition:opacity .25s ease,transform .35s cubic-bezier(.22,1,.36,1)}
 #lx-fim.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
@@ -1219,9 +1231,13 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
     <div id="lx-diagl"></div>
   </div>
 </div>
-<div class="sheet" id="lx-dia" hidden>
-  <div class="panel tall" role="dialog" aria-label="Igreja">
-    <h2>Igreja</h2>
+<div class="sheet ig-full" id="lx-dia" hidden>
+  <div class="panel ig-p" role="dialog" aria-label="Igreja">
+    <div class="ig-h">
+      <button class="r-btn" id="lx-ig-home" aria-label="Sair da Igreja e voltar para a estante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/></svg></button>
+      <h2>Igreja</h2>
+    </div>
+    <nav class="ig-tabs" id="lx-ig-tabs" aria-label="Fontes do dia"></nav>
     <div id="lx-dial"></div>
   </div>
 </div>
@@ -1393,6 +1409,8 @@ function diaP(t){return diaSemNum(t).split(/\n+/).filter(x=>x.trim()).map(x=>'<p
 function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
 /* ---------- Igreja: o dia da Igreja em linhas calmas (cada uma abre e fecha; só o Evangelho vem aberto) ---------- */
 const IG_ABERTAS=new Set(['ev']);
+const IG_TABS=[['hoje','Hoje'],['evq','Evangelho Quotidiano'],['vat','Vaticano'],['mais','Outros sites']];
+let igTab='hoje';
 const igRow=(id,t,sub,corpo)=>corpo?'<details class="ig-r" data-r="'+id+'"'+(IG_ABERTAS.has(id)?' open':'')+'><summary><span class="ig-t">'+t+'</span>'+(sub?'<small class="ig-s">'+esc(sub)+'</small>':'')+'</summary><div class="ig-c">'+corpo+'</div></details>':'';
 const PAPA_LINKS=[['Audiência geral (quartas-feiras)','https://www.vatican.va/content/leo-xiv/pt/audiences.index.html'],['Angelus e Regina Caeli','https://www.vatican.va/content/leo-xiv/pt/angelus.index.html'],['Mensagens do Papa','https://www.vatican.va/content/leo-xiv/pt/messages.index.html'],['O Papa no Vatican News','https://www.vaticannews.va/pt/papa.html'],['A Igreja no mundo · Vatican News','https://www.vaticannews.va/pt/igreja.html']];
 const MAIS_LINKS=[['Palavra do dia e homilia · Vatican News','https://www.vaticannews.va/pt/palavra-do-dia.html'],['Liturgia diária · Canção Nova','https://liturgia.cancaonova.com/pb/'],['Liturgia diária · CNBB','https://www.cnbb.org.br/liturgia-diaria/']];
@@ -1412,7 +1430,6 @@ async function renderDia(){const el=$('#lx-dial');
     if(p2)leit+=diaSec('Segunda leitura',p2.referencia,(p2.titulo?'<p class="dia-ti">'+esc(p2.titulo)+'</p>':'')+diaP(p2.texto));
     if(L.oracoes&&L.oracoes.coleta)leit+=diaSec('Oração do dia','',diaP(L.oracoes.coleta));
   }else if(o.ev){leit=diaSec('Evangelho',o.evRef,diaP(o.ev),true);refEv=o.evRef||'';}
-  R.push(igRow('ev','Leituras de hoje',refEv?'Evangelho · '+refEv:'',leit));
   // Santo do dia
   const SS=o.santos&&o.santos.length?o.santos:String(o.santo||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(n=>({nome:n,id:''})),hoje=new Date(),mm=String(hoje.getMonth()+1).padStart(2,'0'),dd=String(hoje.getDate()).padStart(2,'0');
   if(SS.length)R.push(igRow('santo',SS.length>1?'Santos do dia':'Santo do dia',SS[0].nome.replace(/,.*$/,''),
@@ -1427,14 +1444,20 @@ async function renderDia(){const el=$('#lx-dial');
   R.push(igRow('papa','O Papa e a Igreja','notícias e mensagens','<div id="lx-ig-news"><p class="dia-st">Buscando as notícias…</p></div>'+igLinks(PAPA_LINKS)));
   // Mais
   R.push(igRow('mais','Mais para hoje','homilias e liturgia em outros sites',igLinks(MAIS_LINKS)+'<p class="note" style="margin:8px 0 0">As homilias são dos seus autores: o Lector abre o site deles.</p>'));
-  let h=cab+R.join('');
+  const row=id=>R.find(x=>x.includes('data-r="'+id+'"'))||'',aberta=x=>x.replace('<details class="ig-r"','<details open class="ig-r"');
+  const extra=[['Opus Dei · Evangelho diário','https://opusdei.org/pt-br/page/evangelho-diario/'],['Evangeli.net · comentário do Evangelho','https://evangeli.net/evangelho/calendario/tempo-comum'],['Aleteia · santo do dia','https://pt.aleteia.org/']];
+  let h=cab;
+  if(igTab==='hoje'){h+=(leit?'<p class="ig-sec-t">Leituras de hoje'+(refEv?' · '+esc(refEv):'')+'</p>'+leit:'')+'<p class="ig-sec-t">Mais para hoje</p>'+row('santo')+row('terco')+row('plano');}
+  else if(igTab==='evq'){h+=aberta(row('med'))||'<p class="dia-st">A meditação de hoje ainda não está disponível.</p>';h+='<p class="dia-mais"><a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Abrir o Evangelho Quotidiano</a></p>';}
+  else if(igTab==='vat'){h+=aberta(row('papa'));}
+  else{h+=aberta(row('mais').replace(/<div class="ig-l">.*?<\/div>/s,m=>m.replace('</div>',extra.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>').join('')+'</div>')));}
   if(!L&&!o.ev&&!o.santo&&!o.c)h+='<p class="dia-st">Não consegui buscar as leituras agora.</p><button class="ghost" id="lx-dia-de-novo">Tentar de novo</button>';
   h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santos, histórias e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>. Notícias e mensagens: <a href="https://www.vaticannews.va/pt.html" target="_blank" rel="noopener">Vatican News</a>.</p>';
   el.innerHTML=h;
   const de=$('#lx-dia-de-novo');if(de)de.onclick=()=>{diaCache=null;renderDia();};
   tercoDesenha();
   el.querySelectorAll('details.ig-r').forEach(d=>d.addEventListener('toggle',()=>{const id=d.dataset.r;if(d.open){IG_ABERTAS.add(id);if(id==='papa')igNoticias();}else IG_ABERTAS.delete(id);}));
-  if(IG_ABERTAS.has('papa'))igNoticias();
+  if(igTab==='vat')igNoticias();
   el.querySelectorAll('details.dia-bio').forEach(dt=>dt.addEventListener('toggle',async()=>{if(!dt.open||dt.dataset.ok)return;dt.dataset.ok='1';const box=dt.querySelector('.dia-tx');
     try{const t=await diaBio(dt.dataset.id);box.innerHTML=t?t.split(/\n+/).map(x=>'<p>'+esc(x)+'</p>').join(''):'<p class="dia-st">Não encontrei a história agora.</p>';}
     catch(e){dt.dataset.ok='';box.innerHTML='<p class="dia-st">Não consegui buscar agora. Toque de novo.</p>';}}));}
@@ -1469,7 +1492,10 @@ function tercoDesenha(){const box=$('#lx-terco');if(!box)return;const P=tercoPas
     '<div class="tc-bt"><button class="ghost" data-terco="volta"'+(i?'':' disabled')+'>Voltar</button><button class="btn" data-terco="prox">'+(fim?'Recomeçar':'Continuar')+'</button></div></div>';}
 $('#lx-dial').addEventListener('click',e=>{const b=e.target.closest('[data-terco]');if(!b)return;const P=tercoPassos();let i=tercoIdx(P);
   i=b.dataset.terco==='volta'?Math.max(0,i-1):(i>=P.length-1?0:i+1);try{localStorage.setItem('lector-terco',JSON.stringify({d:dayKey(Date.now()),i}));}catch(x){}tercoDesenha();});
-$('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');renderDia();};
+function igAbas(){$('#lx-ig-tabs').innerHTML=IG_TABS.map(t=>'<button data-igt="'+t[0]+'"'+(t[0]===igTab?' class="on"':'')+'>'+esc(t[1])+'</button>').join('');}
+$('#lx-ig-tabs').addEventListener('click',e=>{const b=e.target.closest('[data-igt]');if(!b)return;igTab=b.dataset.igt;igAbas();$('#lx-dial').scrollTop=0;renderDia();});
+$('#lx-ig-home').onclick=closeSheets;
+$('#lx-dia-btn').onclick=()=>{closeSheets();openSheet('#lx-dia');igAbas();renderDia();};
 
 /* ---------- Diagnóstico e versão: o app guarda os últimos avisos e erros para você poder ver (Aa > Diagnóstico) ---------- */
 function lxErr(e){try{console.warn('Lector ·',(e&&e.message)||e);}catch(x){}}
