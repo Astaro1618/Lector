@@ -324,9 +324,10 @@ body.logado .lib-foot{display:none}
 .ribbon{position:absolute;right:18px;top:calc(100% - 4px);width:30px;height:50px;background:var(--line);clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);transition:background .2s,height .2s}
 .ribbon.on{background:var(--ribbon);height:58px}
 @media (prefers-reduced-motion:reduce){.ribbon{transition:none}}
-#lx-rtitle{cursor:pointer;border-radius:10px;padding:4px 8px;margin-left:-4px}
+#lx-rtitle{font-size:0;pointer-events:none;padding:0;margin:0}   /* o título espremido virava um "C" solto entre os botões: some, e o espaço fica */
 #lx-rtitle:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
-#lx-rtitle::after{content:" ▾";color:var(--muted);font-size:.8em}
+#lx-rtitle::after{content:none}
+#lx-ribbon{display:none}   /* a posição de leitura já é lembrada sozinha; o marcador de página saiu */
 .sum-dd{position:absolute;z-index:6;top:calc(var(--sat,0px) + 56px);left:50%;transform:translateX(-50%);width:min(560px,94vw);max-height:min(70vh,640px);display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--raio,16px);box-shadow:0 14px 40px rgba(0,0,0,.18);overflow:hidden}
 .sum-dd header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:1px solid var(--line)}
 .sum-dd header b{font-family:var(--display);font-weight:600;font-size:17px}
@@ -1020,6 +1021,7 @@ body.bible-mode{background:#1b1a1e}
 #lx-fim.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 #lx-fim button{min-height:42px;padding:0 16px;border-radius:999px;font-weight:600;white-space:nowrap}
 #lx-fim button[data-fim="sim"]{background:var(--accent);color:var(--on-accent)}#lx-fim button[data-fim="nao"]{color:inherit;opacity:.8}
+body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) #lx-shelf,body:has(#lx-reader:not([hidden])) .lib-foot,body:has(#lx-reader:not([hidden])) #lx-ctop{visibility:hidden}   /* leitor aberto: a estante atrás não pode aparecer quando a tela balança (notificações) */
 </style>
 </head>
 <body class="booting">
@@ -1076,7 +1078,7 @@ body.bible-mode{background:#1b1a1e}
     <div class="r-title" id="lx-rtitle"></div>
     <button class="r-btn" id="lx-trp" aria-label="Traduzir esta página" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5.5 7M11 5c-.8 3.8-3.4 6.8-7 8.5M13 21l4-9 4 9M14.5 18h5"/></svg></button>
     <button class="r-btn" id="lx-find" aria-label="Buscar no livro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
-    <button class="r-btn" id="lx-toc" aria-label="Sumário e marcadores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
+    <button class="r-btn" id="lx-toc" aria-label="Sumário, destaques e notas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
     <button class="r-btn fsb" id="lx-fs" aria-label="Tela cheia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <button class="r-btn aa" id="lx-aa" aria-label="Aparência">Aa</button>
     <button class="ribbon" id="lx-ribbon" aria-label="Marcar esta página" aria-pressed="false"></button>
@@ -1133,8 +1135,8 @@ body.bible-mode{background:#1b1a1e}
 </div>
 
 <div class="sheet" id="lx-contents" hidden>
-  <div class="panel tall" role="dialog" aria-label="Sumário e marcadores">
-    <div class="tabs"><button data-tab="toc" class="on">Sumário</button><button data-tab="marks">Marcadores</button><button data-tab="hls">Destaques</button></div>
+  <div class="panel tall" role="dialog" aria-label="Sumário, destaques e notas">
+    <div class="tabs"><button data-tab="toc" class="on">Sumário</button><button data-tab="hls">Destaques</button><button data-tab="notas">Notas</button></div>
     <div class="list" id="lx-list"></div>
   </div>
 </div>
@@ -1993,8 +1995,10 @@ async function renderContents(){
     const hs=[...(cur.book.highlights||[])].sort((a,b)=>(b.editado||b.at||0)-(a.editado||a.at||0));   // a mais nova em cima
     L.innerHTML=hs.length?'<button class="ghost" data-act="export" style="width:100%;margin:8px 0 4px">Exportar para Word ('+hs.length+')</button>'+hs.map(h=>'<button class="hitem" data-hl="'+h.id+'"><i data-c="'+h.color+'"></i><span style="min-width:0"><q>'+esc(h.text)+'</q>'+(h.note?'<em>'+esc(h.note)+'</em>':'')+'<small>'+esc([h.label,dataBR(h.at)].filter(Boolean).join(', '))+'</small></span></button>').join(''):'<p class="note">Nenhum destaque ainda. Selecione um trecho do texto e escolha uma cor.</p>';
   }else{
-    const ms=[...cur.book.bookmarks].map((m,i)=>({m,i})).sort((a,b)=>a.m.frac-b.m.frac);
-    L.innerHTML=ms.length?ms.map(({m,i})=>'<div class="mark"><button class="go" data-mark="'+i+'"><b>'+esc(m.label)+'</b><small>'+(m.text?esc(m.text):Math.round(m.frac*100)+'%')+'</small></button><button class="x" data-unmark="'+i+'" aria-label="Remover marcador">×</button></div>').join(''):'<p class="note">Nenhum marcador ainda. Toque na fita no alto da tela para marcar onde você está.</p>';
+    // Notas: os destaques que têm um texto escrito por você, na ordem do livro
+    const ns=(cur.book.highlights||[]).filter(h=>h.note&&String(h.note).trim());
+    ns.sort((a,b)=>(a.key===b.key?(a.s||0)-(b.s||0):String(a.key).localeCompare(String(b.key),undefined,{numeric:true})));
+    L.innerHTML=ns.length?ns.map(h=>'<button class="hitem" data-hl="'+h.id+'"><i data-c="'+h.color+'"></i><span style="min-width:0"><em>'+esc(h.note)+'</em><q>'+esc(h.text)+'</q><small>'+esc([h.label,dataBR(h.at)].filter(Boolean).join(', '))+'</small></span></button>').join(''):'<p class="note">Nenhuma nota ainda. Selecione um trecho, destaque e escreva sua nota.</p>';
   }
 }
 function dataBR(t){return new Date(t).toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});}
