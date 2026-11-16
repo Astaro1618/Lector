@@ -182,6 +182,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 html,body{overflow-x:clip;overscroll-behavior:none}
 .brand{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;line-height:1;letter-spacing:-.01em;margin:0}
 .count{color:var(--muted);font-size:14px;margin:6px 0 0}
+.lib-total{margin:0 0 14px;text-align:center;color:var(--muted);font-size:14px}.lib-total:empty{display:none}
 .add{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);font-weight:700;padding:11px 16px;border-radius:999px;white-space:nowrap}
 .add svg{width:18px;height:18px}
 .filters{display:flex;gap:22px;margin-top:18px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
@@ -316,15 +317,16 @@ body.logado .lib-foot{display:none}
 
 /* ---------- Leitor ---------- */
 .reader{position:fixed;inset:0;height:var(--app-h);z-index:20;display:flex;flex-direction:column;background:var(--read-bg);color:var(--read-ink)}
-.r-bar{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:6px;padding:calc(var(--sat,0px) + 6px) 64px 6px 8px;background:var(--surface);border-bottom:1px solid var(--line);color:var(--ink)}
-.r-btn{height:40px;min-width:40px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border-radius:8px}
-.r-btn svg{width:20px;height:20px}
-.r-btn.aa{font-family:var(--serif);font-size:18px;font-weight:600}
+.r-bar{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:0;padding:calc(var(--sat,0px)*.25 + 7px) 14px 12px;   /* só um quarto da reserva do topo: ícones no meio da barra, folga igual em cima e embaixo */
+background:var(--surface);border-bottom:1px solid var(--line);color:var(--ink)}
+.r-btn{height:42px;width:42px;min-width:42px;padding:0;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;border-radius:10px}
+.r-btn svg{width:22px;height:22px}
+.r-btn.aa{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1}
 .r-title{flex:1;min-width:0;font-family:var(--serif);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;padding-left:2px}
 .ribbon{position:absolute;right:18px;top:calc(100% - 4px);width:30px;height:50px;background:var(--line);clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);transition:background .2s,height .2s}
 .ribbon.on{background:var(--ribbon);height:58px}
 @media (prefers-reduced-motion:reduce){.ribbon{transition:none}}
-#lx-rtitle{font-size:0;pointer-events:none;padding:0;margin:0}   /* o título espremido virava um "C" solto entre os botões: some, e o espaço fica */
+#lx-rtitle{display:none}   /* o título espremido virava um "C" solto entre os botões: some, e o espaço fica */
 #lx-rtitle:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 #lx-rtitle::after{content:none}
 #lx-ribbon{display:none}   /* a posição de leitura já é lembrada sozinha; o marcador de página saiu */
@@ -343,7 +345,7 @@ body.logado .lib-foot{display:none}
 .reader.focus .r-bar{opacity:0;transform:translateY(-100%);pointer-events:none}
 .reader.focus .r-foot{opacity:0;transform:translateY(100%);pointer-events:none}
 /* espaço fixo no começo e no fim do livro (não muda ao tocar), para a 1ª linha não ficar sob a barra */
-.r-page{padding-top:calc(var(--sat,0px) + 58px);padding-bottom:calc(var(--sab,0px) + 70px)}
+.r-page{padding-top:calc(var(--sat,0px)*.25 + 62px);padding-bottom:calc(var(--sab,0px) + 70px)}
 .r-page{position:relative;flex:1;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .flow{max-width:36em;margin:0 auto;padding:40px 22px 90px;font-family:var(--ff);font-size:var(--fs);line-height:var(--lh);hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
 .flow p{margin:0 0 .9em}
@@ -724,6 +726,7 @@ body.bible-mode{background:#1b1a1e}
 }
 
 /* ---------- B · Vigília ---------- */
+:root[data-cara="vigilia"]{background:#0B0D12}
 :root[data-cara="vigilia"] body:not(.bible-mode){background:#0B0D12}
 :root[data-cara="vigilia"] :is(.lib-head,.cara-top,.rev,.shelf,.lib-foot){--bg:#0B0D12;--surface:#151923;--ink:#ECE7DA;--muted:#B5AFA0;--line:#2C313D;--accent:#E2BD6B;--on-accent:#0B0D12;--rubric:#E2BD6B;--ribbon:#E2BD6B;--nav:#151923;--nav-ink:#D9D3C4}
 :root[data-cara="vigilia"] .brand{color:#E2BD6B}
@@ -772,6 +775,7 @@ body.bible-mode{background:#1b1a1e}
 }
 
 /* ---------- E · Breviário ---------- */
+:root[data-cara="breviario"]{background:#EAF0F7}
 :root[data-cara="breviario"] body:not(.bible-mode){background:#EAF0F7}
 :root[data-cara="breviario"] :is(.lib-head,.cara-top,.rev,.shelf,.lib-foot){--bg:#EAF0F7;--surface:#FFFFFF;--ink:#17263A;--muted:#51627A;--line:#D3DEEB;--accent:#23508E;--on-accent:#FFFFFF;--rubric:#7A5C0E;--ribbon:#B08A2E;--nav:#FFFFFF;--nav-ink:#51627A;
   --display:'Newsreader',Georgia,serif;--serif:'Newsreader',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
@@ -953,8 +957,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
   <div class="lib-top">
     <div>
       <h1 class="brand"><img class="logo" src="data:image/png;base64,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" alt="">Lector</h1>
-      <p class="motto">Tolle, lege</p>
-      <p class="count" id="lx-count"></p>
+      <p class="count" id="lx-count" hidden></p>
     </div>
     <div class="head-actions">
       <button class="icon-btn" id="lx-dia-btn" aria-label="Igreja: liturgia, santo, terço e Papa" title="Igreja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.4v3.2M10.7 3.9h2.6"/><path d="M6.6 12.2a5.4 5.4 0 0 1 10.8 0"/><path d="M4.2 12.2h15.6"/><path d="M5.8 12.2v6.9M9.6 12.2v6.9M14.4 12.2v6.9M18.2 12.2v6.9"/><path d="M3.6 19.6h16.8"/></svg><span class="lbl">Igreja</span></button>
@@ -977,6 +980,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
 <div class="cara-top" id="lx-ctop" hidden></div>
 <main class="shelf" id="lx-shelf"></main>
 <footer class="lib-foot">
+  <p class="lib-total" id="lx-total"></p>
   <p id="lx-sync">Os livros ficam guardados só neste aparelho, dentro deste navegador.</p>
   <div class="foot-actions"><button class="ghost" id="lx-backup">Fazer cópia de segurança</button><button class="ghost" id="lx-restore">Restaurar uma cópia</button></div>
   <p>A cópia guarda livros, marcadores, destaques e diário num arquivo .zip. Se os dados do navegador forem apagados, ela traz tudo de volta.</p>
@@ -1754,7 +1758,7 @@ async function renderLibrary(){
   const books=(await all('books')).filter(b=>!/b[ií]blia/i.test((b.title||'')+' '+(b.file||b.name||''))).sort((a,b)=>(b.lastRead||b.added)-(a.lastRead||a.added));
   const n={all:books.length,reading:0,toread:0,done:0};books.forEach(b=>n[b.status]=(n[b.status]||0)+1);
   document.querySelectorAll('#lx-filters button[data-f]').forEach(b=>{b.classList.toggle('on',b.dataset.f===filter);b.querySelector('small').textContent=n[b.dataset.f]||'';});
-  $('#lx-count').textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'Sua biblioteca de bolso';
+  $('#lx-count').textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'Sua biblioteca de bolso';{const lt=$('#lx-total');if(lt)lt.textContent=books.length?(books.length===1?'1 livro na estante':books.length+' livros na estante'):'';}
   const list0=filter==='all'?books:books.filter(b=>b.status===filter),list=colSel?list0.filter(b=>(b.cols||[]).includes(colSel)):list0;
   {const cb=$('#lx-cbtn');if(cb){cb.textContent=colSel?'Coleção: '+colSel+' ✕':'Coleções';cb.classList.toggle('sel',!!colSel);cb.hidden=!colSel;}}
   const shelf=$('#lx-shelf');mostraCofre();const C=caraAtiva();caraTopo(C,books);
