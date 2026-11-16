@@ -167,7 +167,7 @@
 .brand .logo{width:42px;height:42px;border-radius:11px;vertical-align:-7px;margin-right:12px;box-shadow:0 1px 3px rgba(0,0,0,.18)}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:var(--sat,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body{touch-action:manipulation;margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
 body::before{content:"";position:fixed;inset:0 0 auto;height:var(--sat,0px);z-index:10;background:var(--bg)}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
@@ -341,7 +341,7 @@ background:var(--surface);border-bottom:1px solid var(--line);color:var(--ink)}
 .sum-l button[data-d="0"]{font-weight:600}
 .sum-l button span{flex:1}.sum-l button small{color:var(--muted);font-variant-numeric:tabular-nums}
 .sum-l p{color:var(--muted);font-size:14px;padding:10px 12px;margin:0}
-.reader .r-bar,.reader .r-foot{transition:opacity .18s ease,transform .18s ease}
+.reader .r-bar,.reader .r-foot{transition:opacity .1s ease,transform .1s ease}
 .reader.focus .r-bar{opacity:0;transform:translateY(-100%);pointer-events:none}
 .reader.focus .r-foot{opacity:0;transform:translateY(100%);pointer-events:none}
 /* espaço fixo no começo e no fim do livro (não muda ao tocar), para a 1ª linha não ficar sob a barra */
@@ -854,7 +854,7 @@ body.bible-mode{background:#1b1a1e}
   @keyframes lxTroca{from{opacity:0;transform:translateY(8px)}}
   /* janelas: sobem com mola e o fundo escurece; ao fechar descem e somem */
   .sheet{transition:opacity .22s ease,visibility 0s}
-  .sheet .panel{transition:transform .42s cubic-bezier(.22,1,.36,1)}
+  .sheet .panel{transition:transform .26s cubic-bezier(.22,1,.36,1)}
   .sheet[hidden]{display:flex!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility 0s linear .18s}
   .sheet[hidden] .panel{transform:translateY(36px);transition:transform .2s ease-in}
   .sheet.gate[hidden] .panel{transform:scale(.96)}
@@ -1858,9 +1858,13 @@ async function openBook(id){telaCheiaCelular();
   }catch(e){console.error(e);page.innerHTML='<p class="msg">Não foi possível abrir este arquivo. Ele pode estar danificado ou protegido contra cópia.</p>';}
 }
 async function closeBook(){try{if(fsAuto&&document.fullscreenElement){fsAuto=false;(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}catch(e){}
-  if(!cur)return;try{localStorage.removeItem('lector-aberto');}catch(e){lxErr(e)}await saveProgress();
-  if(cur.io)cur.io.disconnect();if(cur.liberaIo)cur.liberaIo.disconnect();if(cur.pdf)try{cur.pdf.destroy();}catch(e){}
-  tick();await saveProgress();cur=null;$('#lx-fim').classList.remove('on');$('#lx-hlbar').hidden=true;$('#lx-reader').classList.remove('focus');page.innerHTML='';$('#lx-reader').hidden=true;document.body.style.overflow='';renderLibrary();
+  if(!cur)return;try{localStorage.removeItem('lector-aberto');}catch(e){lxErr(e)}
+  const sv=saveProgress();                       // a parte que lê a posição roda já; o gravar termina em segundo plano
+  const c=cur;if(c.io)c.io.disconnect();if(c.liberaIo)c.liberaIo.disconnect();
+  tick();cur=null;$('#lx-fim').classList.remove('on');$('#lx-hlbar').hidden=true;$('#lx-reader').classList.remove('focus');$('#lx-reader').hidden=true;document.body.style.overflow='';
+  renderLibrary();                                // a estante aparece na hora
+  setTimeout(()=>{page.innerHTML='';if(c.pdf)try{c.pdf.destroy();}catch(e){}},0);
+  try{await sv;}catch(e){lxErr(e)}
 }
 /* toque do usuário: usado para distinguir leitura de verdade de uma mudança de tela (girar, notificação, voltar do segundo plano) */
 let ultToque=0;
@@ -3871,6 +3875,14 @@ function textHostAt(x,y){
   return null;
 }
 function charHit(host,x,y){
+  try{let cr=null;
+    if(document.caretRangeFromPoint)cr=document.caretRangeFromPoint(x,y);
+    else if(document.caretPositionFromPoint){const cp=document.caretPositionFromPoint(x,y);if(cp){cr=document.createRange();cr.setStart(cp.offsetNode,cp.offset);}}
+    if(cr&&cr.startContainer.nodeType===3&&host.contains(cr.startContainer)){
+      const n=cr.startContainer,o=cr.startOffset,t=n.data,i=Math.min(o,Math.max(0,t.length-1));
+      const rg=document.createRange();rg.setStart(n,i);rg.setEnd(n,Math.min(t.length,i+1));const q=rg.getClientRects()[0];
+      if(q&&q.height&&y>=q.top-4&&y<=q.bottom+4)return{d:0,node:n,off:x<(q.left+q.right)/2?i:i+1};}
+  }catch(e){}
   const r=document.createRange();let best=null;
   for(const n of textNodes(host)){const t=n.data;for(let i=0;i<t.length;i++){r.setStart(n,i);r.setEnd(n,i+1);const q=r.getClientRects()[0];if(!q||!q.height)continue;
     const dy=y<q.top?q.top-y:y>q.bottom?y-q.bottom:0,dx=x<q.left?q.left-x:x>q.right?x-q.right:0,d=dy*4+dx;
@@ -3884,13 +3896,13 @@ function startSel(x,y){
   if(isW(t[a])||isW(t[a-1])){while(a>0&&isW(t[a-1]))a--;while(b<t.length&&isW(t[b]))b++;}if(a===b)b=Math.min(t.length,a+1);
   try{window.getSelection().removeAllRanges();}catch(e){}
   dragY=null;csel={s:{n:h.node,o:a},e:{n:h.node,o:b}};drag='b';dragFrom='lp';activeEnd='end';suppressClick=true;
-  try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}
-  afterSelChange();const rr=cRange().getClientRects();const q=rr[rr.length-1];if(q)drawLoupe({x:q.right,top:q.top,h:q.height});
+  paintCsel();requestAnimationFrame(()=>{afterSelChange();});
+  const rr=cRange().getClientRects();const q=rr[rr.length-1];if(q)drawLoupe({x:q.right,top:q.top,h:q.height});
 }
 page.addEventListener('pointerdown',e=>{
   if(e.pointerType!=='touch'||!cur||e.target.closest('.trov'))return;
   tap={x:e.clientX,y:e.clientY,t:Date.now()};
-  clearTimeout(lp&&lp.t);lp={x:e.clientX,y:e.clientY,t:setTimeout(()=>startSel(e.clientX,e.clientY),450)};
+  clearTimeout(lp&&lp.t);lp={x:e.clientX,y:e.clientY,t:setTimeout(()=>{try{navigator.vibrate&&navigator.vibrate(8);}catch(er){}startSel(e.clientX,e.clientY);},320)};
 },{passive:true});
 function onDragMove(){dragRaf=0;if(!drag||!csel||!lastPt)return;
   const h=hitAt(lastPt.x,lastPt.y-(dragFrom==='handle'?24:0));if(!h)return;
