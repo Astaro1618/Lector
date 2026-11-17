@@ -1724,11 +1724,12 @@ async function renderPdf(buf,page){
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)drawPage(e.target,doc);}),{root:page,rootMargin:'900px 0px'});
   wrap.querySelectorAll('.pg').forEach(d=>io.observe(d));cur.io=io;
   /* páginas a mais de ~3000 px da tela devolvem a memória (o desenho volta sozinho quando a página se aproxima) */
-  const liberaIo=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting&&e.target.dataset.done)liberaPagina(e.target);}),{root:page,rootMargin:'3000px 0px'});
+  const liberaIo=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting&&e.target.dataset.done&&!naSelecao(e.target))liberaPagina(e.target);}),{root:page,rootMargin:'3000px 0px'});
   wrap.querySelectorAll('.pg').forEach(d=>liberaIo.observe(d));cur.liberaIo=liberaIo;
   cur.toc=[];
   try{const ol=await doc.getOutline();if(ol&&ol.length){const flat=[];const walk=(items,depth)=>items.forEach(it=>{flat.push({label:it.title,dest:it.dest,depth});if(it.items&&it.items.length&&depth<2)walk(it.items,depth+1);});walk(ol,0);cur.toc=flat;}}catch(e){lxErr(e)}
 }
+function naSelecao(d){try{const sl=window.getSelection();if(csel){const r=cRange();return !r.collapsed&&r.intersectsNode(d);}return !!(sl&&sl.rangeCount&&!sl.isCollapsed&&sl.getRangeAt(0).intersectsNode(d));}catch(e){return false;}}
 function liberaPagina(d){d.querySelectorAll('canvas').forEach(c=>{try{c.width=1;c.height=1;}catch(x){}c.remove();});d.querySelectorAll('.textLayer,.hlbox').forEach(x=>x.remove());delete d.dataset.done;}
 async function drawPage(d,doc){
   if(d.dataset.done||!cur||cur.pdf!==doc)return;d.dataset.done='1';
@@ -1737,7 +1738,7 @@ async function drawPage(d,doc){
     try{const css=d.clientWidth/v.width;d.style.setProperty('--scale-factor',css);d.dataset.pw=v.width;d.dataset.rw=d.clientWidth;const tl=document.createElement('div');tl.className='textLayer';d.appendChild(tl);
       await pdfjsLib.renderTextLayer({textContentSource:pg.streamTextContent(),container:tl,viewport:pg.getViewport({scale:css}),textDivs:[]}).promise;
       const eoc=document.createElement('div');eoc.className='endOfContent';tl.appendChild(eoc);try{marcaMoldura(tl);}catch(e){}
-      if(cur&&gen===cur.gen){pintaOutros('p'+d.dataset.n);(cur.book.highlights||[]).filter(h=>h.key==='p'+d.dataset.n).forEach(h=>{try{paintHL(h);}catch(e){}});marcaReacoes();}
+      if(cur&&gen===cur.gen){pintaOutros('p'+d.dataset.n);{const K='p'+d.dataset.n;(cur.book.highlights||[]).filter(h=>h.key===K||(h.more||[]).some(g=>g.key===K)).forEach(h=>{try{paintHL(h,K);}catch(e){}});}marcaReacoes();}
     }catch(e){}}}catch(e){delete d.dataset.done;}
 }
 async function pdfDestPage(dest){try{let d=dest;if(typeof d==='string')d=await cur.pdf.getDestination(d);if(!d)return null;const ref=d[0];return(typeof ref==='number'?ref:await cur.pdf.getPageIndex(ref))+1;}catch(e){return null;}}
@@ -2308,7 +2309,10 @@ function caixasDe(pg){pg.querySelectorAll('.hlbox').forEach(x=>x.remove());const
     d.style.cssText='left:'+((l.x0-base.left-1)/bw*100)+'%;top:'+((l.t-base.top-gap)/bh*100)+'%;width:'+((l.x1-l.x0+2)/bw*100)+'%;height:'+((l.b-l.t+2*gap)/bh*100)+'%';frag.appendChild(d);}   /* em %: a faixa acompanha a página em qualquer zoom */
   pg.appendChild(frag);}
 function unwrap(m){const pg=m.closest&&m.closest('.textLayer')?m.closest('.pg'):null;const p=m.parentNode;if(!p)return;while(m.firstChild)p.insertBefore(m.firstChild,m);p.removeChild(m);p.normalize();if(pg)redesenhaCaixas(pg);}
-function paintHL(h){const root=rootFor(h.key);if(!root)return;if(root.classList&&root.classList.contains('textLayer'))redesenhaCaixas(root.closest('.pg'));wrapRange.pula=h.naNota?'svg,.lx-pf':'svg,.lx-pf,.lx-nota';const ms=wrapRange(root,h.s,h.e,()=>{const m=document.createElement('mark');m.className='hl'+(h.note?' noted':'');m.dataset.h=h.id;m.dataset.c=h.color;return m;});
+/* uma marcação pode atravessar páginas/capítulos: key,s,e é o 1º pedaço e h.more guarda os seguintes */
+function segsDe(h){return [h].concat((h.more||[]).map(g=>({...h,key:g.key,s:g.s,e:g.e,more:undefined})));}
+function paintHL(h,so){segsDe(h).forEach((g,i)=>{if(so&&g.key!==so)return;paintSeg(i===0?h:g);});}
+function paintSeg(h){const root=rootFor(h.key);if(!root)return;if(root.classList&&root.classList.contains('textLayer'))redesenhaCaixas(root.closest('.pg'));wrapRange.pula=h.naNota?'svg,.lx-pf':'svg,.lx-pf,.lx-nota';const ms=wrapRange(root,h.s,h.e,()=>{const m=document.createElement('mark');m.className='hl'+(h.note?' noted':'');m.dataset.h=h.id;m.dataset.c=h.color;return m;});
   if(h.text&&/\u00AD/.test(h.text)){h.text=h.text.replace(/\u00AD\s*/g,'');clearTimeout(paintHL.T);paintHL.T=setTimeout(()=>put('books',cur.book).catch(lxErr),800);}
   /* PDF: refaz o texto do destaque pela posição das letras na página (palavra partida no fim da linha, espaço que sumiu ou sobrou).
      espOk=2 marca a versão do conserto: destaques que passaram pela versão antiga são refeitos uma vez. */
@@ -2333,6 +2337,15 @@ function textoDeNos(parts){let out='',prev=null;
 function sortHL(a){return [...a].sort((x,y)=>(x.order-y.order)||(x.s-y.s));}
 let pend=null,selT;
 document.addEventListener('selectionchange',()=>{clearTimeout(selT);selT=setTimeout(checkSel,180);});
+/* seleção que atravessa páginas (PDF) ou capítulos: um pedaço por página/capítulo, na ordem do livro */
+function segmentos(r){const out=[];
+  const keys=cur.pdf?[...page.querySelectorAll('.pg')].map(d=>'p'+d.dataset.n):[...page.querySelectorAll('section.ch')].map(x=>x.dataset.file);
+  for(const key of keys){const root=rootFor(key);if(!root||!r.intersectsNode(root))continue;const T=root.textContent;
+    let s=root.contains(r.startContainer)?offIn(root,r.startContainer,r.startOffset):0;
+    let e=root.contains(r.endContainer)?offIn(root,r.endContainer,r.endOffset):T.length;
+    while(s<e&&/\s/.test(T[s]))s++;while(e>s&&/\s/.test(T[e-1]))e--;
+    if(e-s>=1)out.push({key,s,e,t:T.slice(s,e).replace(/\s+/g,' ')});}
+  return out;}
 function checkSel(){
   const bar=$('#lx-hlbar');
   if(!cur||document.querySelector('.sheet:not([hidden])')){bar.hidden=true;return;}
@@ -2344,8 +2357,9 @@ function checkSel(){
   let s=offIn(root,r.startContainer,r.startOffset);
   let e=keyOf(r.endContainer)===k?offIn(root,r.endContainer,r.endOffset):T.length;
   while(s<e&&/\s/.test(T[s]))s++;while(e>s&&/\s/.test(T[e-1]))e--;
-  if(e-s<1){bar.hidden=true;return;}
-  pend={key:k,s,e,text:T.slice(s,e).replace(/\s+/g,' ')};pend.textP=textoParagrafos(r)||pend.text;{const ini=r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement;pend.naNota=!!(ini&&ini.closest('.lx-nota'));}if(cur&&cur.pdf&&pend.textP)pend.text=pend.textP.replace(/\s*\n\n\s*/g,' ');pend.word=pend.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'');pend.ctx=T.slice(Math.max(0,s-220),Math.min(T.length,e+220)).replace(/\s+/g,' ').trim();
+  const kE=keyOf(r.endContainer),segs=kE!==k?segmentos(r):null,multi=segs&&segs.length>1?segs:null;
+  if(!multi&&e-s<1){bar.hidden=true;return;}
+  pend=multi?{key:multi[0].key,s:multi[0].s,e:multi[0].e,more:multi.slice(1).map(x=>({key:x.key,s:x.s,e:x.e})),keyFim:multi[multi.length-1].key,text:multi.map(x=>x.t).join(' ')}:{key:k,s,e,text:T.slice(s,e).replace(/\s+/g,' ')};pend.textP=textoParagrafos(r)||pend.text;{const ini=r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement;pend.naNota=!!(ini&&ini.closest('.lx-nota'));}if(cur&&cur.pdf&&pend.textP)pend.text=pend.textP.replace(/\s*\n\n\s*/g,' ');pend.word=pend.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'');pend.ctx=T.slice(Math.max(0,s-220),Math.min(T.length,e+220)).replace(/\s+/g,' ').trim();
   const one=!!pend.word&&!/\s/.test(pend.word)&&pend.word.length<=40;const tb=$('#lx-trbtn');tb.textContent='Traduzir';tb.dataset.mode='tr';$('#lx-dicbtn').hidden=!one;bar.hidden=false;placeBar(r);
 }
 /* barra de destaque junto do trecho: embaixo da seleção (o menu do celular costuma ficar em cima); se não couber, em cima */
@@ -2368,11 +2382,11 @@ window.addEventListener('orientationchange',()=>setTimeout(replaceBar,300));
 page.addEventListener('contextmenu',e=>{e.preventDefault();});
 function addHL(p,color){
   const b=cur.book;b.highlights=b.highlights||[];
-  let h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),key:p.key,s:p.s,e:p.e,color,text:p.text,note:'',naNota:p.naNota?1:undefined,at:Date.now(),label:cur.pdf?'Página '+p.key.slice(1):p.key==='txt'?'':(cur.labels[p.key]||''),pg:cur.pdf?undefined:Math.max(1,Math.round(frac()*(cur.letras=cur.letras||page.textContent.length)/1800)),order:cur.pdf?+p.key.slice(1):p.key==='txt'?0:Object.keys(cur.map).indexOf(p.key)};
+  let h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),key:p.key,s:p.s,e:p.e,more:p.more,color,text:p.text,note:'',naNota:p.naNota?1:undefined,at:Date.now(),label:cur.pdf?'Página '+p.key.slice(1)+(p.keyFim&&p.keyFim!==p.key?'–'+p.keyFim.slice(1):''):p.key==='txt'?'':(cur.labels[p.key]||''),pg:cur.pdf?undefined:Math.max(1,Math.round(frac()*(cur.letras=cur.letras||page.textContent.length)/1800)),order:cur.pdf?+p.key.slice(1):p.key==='txt'?0:Object.keys(cur.map).indexOf(p.key)};
   // marcação da mesma cor colada a outra (só espaço no meio, ou por cima): vira um bloco só
   const root=rootFor(h.key);
-  if(root){const tudo=textNodes(root).map(n=>n.data).join('');
-    for(const o of b.highlights.filter(x=>x.key===h.key&&x.color===h.color)){
+  if(root&&!h.more){const tudo=textNodes(root).map(n=>n.data).join('');
+    for(const o of b.highlights.filter(x=>x.key===h.key&&x.color===h.color&&!x.more)){
       const ini=Math.min(o.s,h.s),fim=Math.max(o.e,h.e),vao=o.e<h.s?tudo.slice(o.e,h.s):h.e<o.s?tudo.slice(h.e,o.s):'';
       if(vao.trim()||vao.length>3||(o.note&&h.note))continue;   // duas notas diferentes: não junta
       page.querySelectorAll('mark.hl[data-h="'+o.id+'"]').forEach(unwrap);
@@ -2385,7 +2399,7 @@ function addHL(p,color){
   pend=null;$('#lx-hlbar').hidden=true;return h;
 }
 function hlAction(btn){if(!pend||!cur)return;
-  if(btn.dataset.act==='copy'){const t=withCite(pend.text,pend.key);const miss=!cur.book.author;try{getSel().removeAllRanges();}catch(e){}pend=null;$('#lx-hlbar').hidden=true;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(miss?'Copiado. Falta o autor: defina nos ⋮ do livro':'Trecho copiado com a citação')).catch(()=>toast('Não foi possível copiar'));return;}
+  if(btn.dataset.act==='copy'){const t=withCite(pend.text,pend.key,pend.keyFim);const miss=!cur.book.author;try{getSel().removeAllRanges();}catch(e){}pend=null;$('#lx-hlbar').hidden=true;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(miss?'Copiado. Falta o autor: defina nos ⋮ do livro':'Trecho copiado com a citação')).catch(()=>toast('Não foi possível copiar'));return;}
   if(btn.dataset.act==='tr'||btn.dataset.act==='dic'){const p={...pend};try{getSel().removeAllRanges();}catch(e){}$('#lx-hlbar').hidden=true;markTr(p);const def=btn.dataset.act==='dic';translate(def?p.word:(p.textP||p.text),{p,ctx:p.ctx},def?'def':'tr');return;}const h=addHL(pend,btn.dataset.c||'y');if(btn.dataset.act==='note')openHL(h.id);else toast('Trecho destacado');}
 $('#lx-hlbar').addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();hlAction(b);});
 $('#lx-hlbar').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&e.detail===0)hlAction(b);});
@@ -2397,7 +2411,7 @@ function pintaOutros(key,soRotulo){if(!cur)return;
   if(f){f.hidden=!os.length;if(os.length)$('#lx-outl').textContent='Marcações de '+(os.map(o=>o.nome).filter(Boolean).join(' e ')||'quem lê com você');}
   if(soRotulo)return;
   if(!key)page.querySelectorAll('mark.hl-o').forEach(unwrap);
-  for(const h of outrosHL())if(!key||h.key===key)try{const root=rootFor(h.key);if(root)wrapRange(root,h.s,h.e,()=>{const m=document.createElement('mark');m.className='hl-o';m.dataset.o=h.uid;m.dataset.h=h.id;m.style.setProperty('--c',corDe(h.uid));m.title=h.nome||'';return m;});}catch(e){}
+  for(const h0 of outrosHL())for(const h of segsDe(h0))if(!key||h.key===key)try{const root=rootFor(h.key);if(root)wrapRange(root,h.s,h.e,()=>{const m=document.createElement('mark');m.className='hl-o';m.dataset.o=h.uid;m.dataset.h=h.id;m.style.setProperty('--c',corDe(h.uid));m.title=h.nome||'';return m;});}catch(e){}
 }
 /* conversa presa ao trecho (dono|momento), a mesma do "Nós dois" */
 function conversaDe(k){if(!cur)return [];const eu=sbUid(),l=[];
@@ -2513,7 +2527,7 @@ function preenchePg(){if(!cur||cur.pdf)return;const b=cur.book;let mudou=false;c
   for(const h of b.highlights||[]){if(h.pg)continue;const m=page.querySelector('mark.hl[data-h="'+h.id+'"]');if(!m)continue;
     const y=(m.getBoundingClientRect().top-pr.top+page.scrollTop)/Math.max(1,page.scrollHeight);h.pg=Math.max(1,Math.round(y*letras/1800));mudou=true;}
   if(mudou)put('books',b).catch(lxErr);}
-function hlLocal(b,h){if(/^p\d+$/.test(h.key||''))return 'p. '+h.key.slice(1);if(h.label)return h.label;return '';}
+function hlLocal(b,h){if(/^p\d+$/.test(h.key||''))return 'p. '+h.key.slice(1)+(h.more&&h.more.length&&/^p\d+$/.test(h.more[h.more.length-1].key)?'–'+h.more[h.more.length-1].key.slice(1):'');if(h.label)return h.label;return '';}
 async function exportHL(b){
   const hs=sortHL(b.highlights||[]);if(!hs.length){toast('Este livro ainda não tem destaques');return;}
   if(!window.JSZip){toast('Não foi possível montar o documento agora');return;}
@@ -3275,7 +3289,7 @@ function desenhaHist(){
   const temNota=h=>h.note&&String(h.note).trim();
   const filtrado=ev.filter(x=>HS_FILTRO==='tudo'||(HS_FILTRO==='eu'?x.quem===uid:HS_FILTRO==='outro'?x.quem!==uid:(x.tipo==='dia'&&x.hs.some(h=>temNota(h)||RESP[h.k]))));
   const titulo=l=>'<em>'+esc(l.meta.title||'')+'</em>';
-  const locH=h=>{const pdf=/^p\d+$/.test(h.key||''),l=[];if(h.label&&!(pdf&&/^Página/i.test(h.label)))l.push(h.label);if(pdf)l.push('p. '+h.key.slice(1));else if(h.pg)l.push('p. ~'+h.pg);return l.join(' · ');};
+  const locH=h=>{const pdf=/^p\d+$/.test(h.key||''),l=[];if(h.label&&!(pdf&&/^Página/i.test(h.label)))l.push(h.label);if(pdf)l.push('p. '+h.key.slice(1)+(h.more&&h.more.length&&/^p\d+$/.test(h.more[h.more.length-1].key)?'–'+h.more[h.more.length-1].key.slice(1):''));else if(h.pg)l.push('p. ~'+h.pg);return l.join(' · ');};
   const trecho=(h,lid)=>{const abre=lid&&lid!==BIBLIA_ID&&h.id,loc=locH(h);return '<p class="hs-tre'+(abre?' ir':'')+'" style="--hc:'+(HL_TINTA[h.color]||HL_TINTA.y)+'"'+(abre?' data-abre="'+esc(lid)+'" data-hid="'+esc(h.id)+'" data-hk="'+esc(h.key||'')+'" role="button" tabindex="0"':'')+'>“'+esc(String(h.text||'').trim())+'”'+(loc?' <small>· '+esc(loc)+'</small>':'')+(abre?' <small class="hs-ir">ver no livro ›</small>':'')+'</p>';};
   const acoes=(h,dono,c)=>{const rs=RESP[h.k]||[],rx=REAC[h.k]||[],meu=e=>rx.some(r=>r.quem===uid&&r.e===e);
     let o='';
@@ -3883,9 +3897,10 @@ document.addEventListener('mouseup',()=>{clearTimeout(loupeT);loupeT=setTimeout(
 
 /* ---------- Cópia com citação ---------- */
 function needsInfo(b){if(!b||b.titleSet)return false;if(b.catChk)return !!b.metaDuvida||!b.author||!b.title;return !b.author||!b.title||/[0-9a-f]{16,}|\s--\s|_|\.(pdf|epub|txt)$/i.test(b.title);}
-function citeLine(key){const b=cur.book;let loc='';
-  if(cur.pdf&&/^p\d+$/.test(key||'')){const n=+key.slice(1);const lab=cur.labelsP&&cur.labelsP[n-1];loc='p. '+(lab&&String(lab).trim()?String(lab).trim():n);}
-  else if(key&&key!=='txt'&&cur.labels&&cur.labels[key])loc=cur.labels[key];
+function citeLine(key,keyFim){const b=cur.book;let loc='';
+  const pgL=k=>{const n=+k.slice(1),lab=cur.labelsP&&cur.labelsP[n-1];return lab&&String(lab).trim()?String(lab).trim():String(n);};
+  if(cur.pdf&&/^p\d+$/.test(key||'')){loc='p. '+pgL(key);if(keyFim&&keyFim!==key&&/^p\d+$/.test(keyFim))loc='pp. '+pgL(key)+'–'+pgL(keyFim);}
+  else if(key&&key!=='txt'&&cur.labels&&cur.labels[key]){loc=cur.labels[key];if(keyFim&&keyFim!==key&&cur.labels[keyFim]&&cur.labels[keyFim]!==loc)loc+=' – '+cur.labels[keyFim];}
   else loc=Math.round(frac()*100)+'% do livro';
   return [citeAuthor(b),b.title,loc].filter(Boolean).join(', ');}
 const HONORS=['Pe.','S.','Sto.','Sta.','Frei','Dom'];
@@ -3894,14 +3909,14 @@ function citeAuthor(b){let a=String(b.author||'').trim();if(!a)return '';let h=b
   for(const [r,v] of rx){if(r.test(a)){a=a.replace(r,'');if(!h&&!b.honorSet)h=v;break;}}
   return h?h+' '+a:a;}
 function cleanCopy(t){return String(t).replace(/(\p{Ll})-\s*\n\s*(\p{Ll})/gu,'$1$2').replace(/\s*\n\s*/g,' ').replace(/(\p{Ll})- (\p{Ll})/gu,'$1$2').replace(/\s{2,}/g,' ').trim();}
-function withCite(text,key){return cleanCopy(text)+'\n\n'+citeLine(key);}
+function withCite(text,key,keyFim){return cleanCopy(text)+'\n\n'+citeLine(key,keyFim);}
 page.addEventListener('copy',e=>{
   if(!cur||!e.clipboardData)return;const sel=getSel();if(!sel.rangeCount||sel.isCollapsed)return;
   const r=sel.getRangeAt(0);if(!page.contains(r.commonAncestorContainer))return;
   const noPdf=(r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement).closest('.textLayer');
   const txt=noPdf?(textoParagrafos(r)||sel.toString()):sel.toString();if(!txt.trim())return;
   const sn=r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement;const ov=sn&&sn.closest('.trov');const pg=ov&&ov.closest('.pg');
-  e.preventDefault();e.clipboardData.setData('text/plain',ov?trCite(cleanCopy(txt),pg?'p'+pg.dataset.n:null):withCite(txt,keyOf(r.startContainer)));
+  e.preventDefault();e.clipboardData.setData('text/plain',ov?trCite(cleanCopy(txt),pg?'p'+pg.dataset.n:null):withCite(txt,keyOf(r.startContainer),keyOf(r.endContainer)));
   toast(cur.book.author?'Copiado com a citação':'Copiado. Falta o autor: defina nos ⋮ do livro');
 });
 
