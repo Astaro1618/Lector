@@ -955,6 +955,11 @@ body.bible-mode{background:#1b1a1e}
 .ig-r .dia-plano{border:0;padding:0}.ig-r .dia-plano>small{display:none}
 .ig-r .dia-nome{font-family:var(--serif);font-size:17px;line-height:1.4;padding:6px 0}
 .ig-l a{display:flex;align-items:center;min-height:46px;color:var(--ink);text-decoration:none;border-top:1px solid var(--line)}
+.fg{max-width:640px}
+.fg-c{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:#000}.fg-c img{width:100%;height:100%;object-fit:cover;display:block}
+.fg-p{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;font-size:22px}
+.fg-i{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:12px}.fg-t{font-family:var(--serif);font-size:16.5px;line-height:1.35;margin:8px 0 2px}
+.fg-b{display:inline-block;padding:10px 14px;border:1px solid var(--line);border-radius:12px;color:var(--ink);text-decoration:none;font-size:14px}
 .ig-n{display:block;padding:10px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}
 .ig-n:first-child{border-top:0}.ig-n b{display:block;font-family:var(--serif);font-size:16.5px;line-height:1.35}.ig-n span{display:block;font-size:13.5px;color:var(--muted);margin-top:3px;line-height:1.4}.ig-n time{display:block;font-size:12px;color:var(--muted);margin-top:3px}
 .tc{text-align:center;padding:4px 0 2px}.tc-m{margin:0 0 6px;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--rubric,var(--muted))}
@@ -1394,7 +1399,7 @@ async function renderDia(){const el=$('#lx-dial');
   const row=id=>R.find(x=>x.includes('data-r="'+id+'"'))||'',aberta=x=>x.replace('<details class="ig-r"','<details open class="ig-r"');
   const extra=[['Opus Dei · Evangelho diário','https://opusdei.org/pt-br/page/evangelho-diario/'],['Evangeli.net · comentário do Evangelho','https://evangeli.net/evangelho/calendario/tempo-comum'],['Aleteia · santo do dia','https://pt.aleteia.org/']];
   let h=cab;
-  if(igTab==='hoje'){h+=(leit?'<p class="ig-sec-t">Leituras de hoje'+(refEv?' · '+esc(refEv):'')+'</p>'+leit:'')+'<p class="ig-sec-t">Mais para hoje</p>'+row('santo')+row('terco')+row('plano');}
+  if(igTab==='hoje'){h+='<div class="fg"><p class="ig-sec-t">Meditação da Palavra · Frei Gilson</p><div id="lx-fg-b"><p class="dia-st">Buscando o vídeo de hoje…</p></div></div>'+(leit?'<p class="ig-sec-t">Leituras de hoje'+(refEv?' · '+esc(refEv):'')+'</p>'+leit:'')+'<p class="ig-sec-t">Mais para hoje</p>'+row('santo')+row('terco')+row('plano');}
   else if(igTab==='evq'){h+=aberta(row('med'))||'<p class="dia-st">A meditação de hoje ainda não está disponível.</p>';h+='<p class="dia-mais"><a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Abrir o Evangelho Quotidiano</a></p>';}
   else if(igTab==='vat'){h+=aberta(row('papa'));}
   else{h+=aberta(row('mais').replace(/<div class="ig-l">.*?<\/div>/s,m=>m.replace('</div>',extra.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>').join('')+'</div>')));}
@@ -1402,12 +1407,25 @@ async function renderDia(){const el=$('#lx-dial');
   h+='<p class="dia-fonte">Leituras: texto litúrgico da CNBB, por <a href="https://liturgia.up.railway.app/" target="_blank" rel="noopener">liturgia.up.railway.app</a>. Santos, histórias e meditação: <a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Evangelho Quotidiano</a>. Notícias e mensagens: <a href="https://www.vaticannews.va/pt.html" target="_blank" rel="noopener">Vatican News</a>.</p>';
   el.innerHTML=h;
   const de=$('#lx-dia-de-novo');if(de)de.onclick=()=>{diaCache=null;renderDia();};
-  tercoDesenha();
+  tercoDesenha();if(igTab==='hoje')fgDesenha();
   el.querySelectorAll('details.ig-r').forEach(d=>d.addEventListener('toggle',()=>{const id=d.dataset.r;if(d.open){IG_ABERTAS.add(id);if(id==='papa')igNoticias();}else IG_ABERTAS.delete(id);}));
   if(igTab==='vat')igNoticias();
   el.querySelectorAll('details.dia-bio').forEach(dt=>dt.addEventListener('toggle',async()=>{if(!dt.open||dt.dataset.ok)return;dt.dataset.ok='1';const box=dt.querySelector('.dia-tx');
     try{const t=await diaBio(dt.dataset.id);box.innerHTML=t?t.split(/\n+/).map(x=>'<p>'+esc(x)+'</p>').join(''):'<p class="dia-st">Não encontrei a história agora.</p>';}
     catch(e){dt.dataset.ok='';box.innerHTML='<p class="dia-st">Não consegui buscar agora. Toque de novo.</p>';}}));}
+/* Meditação da Palavra (Frei Gilson): último vídeo do canal cujo título tem esse nome. Se não carregar, fica o link de busca. */
+const FG_CANAL='UCbh6_TmFnAJLI56aAQeD3qw',FG_BUSCA='https://www.youtube.com/results?search_query='+encodeURIComponent('Meditação da Palavra Frei Gilson')+'&sp=CAI%253D';
+async function fgVideo(){let c=null;try{c=JSON.parse(localStorage.getItem('lector-fg')||'null');}catch(e){}
+  if(c&&c.v&&Date.now()-c.t<3*3600000)return c.v;
+  const j=await (await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://www.youtube.com/feeds/videos.xml?channel_id='+FG_CANAL))).json();
+  const it=(j.items||[]).find(x=>/medita[cç][aã]o da palavra/i.test(x.title||''));if(!it)throw new Error('sem vídeo');
+  const id=(String(it.link||'').match(/[?&]v=([\w-]{11})/)||[])[1];if(!id)throw new Error('sem id');
+  const v={id,titulo:it.title,data:String(it.pubDate||'').replace(' ','T')};try{localStorage.setItem('lector-fg',JSON.stringify({t:Date.now(),v}));}catch(e){}return v;}
+async function fgDesenha(){const b=$('#lx-fg-b');if(!b)return;
+  try{const v=await fgVideo();
+    b.innerHTML='<button class="fg-c" aria-label="Assistir"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="fg-p">▶</span></button><p class="fg-t">'+esc(v.titulo)+'</p><small class="note">'+dataCurta(v.data)+' · toque para assistir</small>';
+    b.querySelector('.fg-c').onclick=()=>{b.querySelector('.fg-c').outerHTML='<iframe class="fg-i" src="https://www.youtube-nocookie.com/embed/'+v.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="Meditação da Palavra"></iframe>';};
+  }catch(e){b.innerHTML='<a class="fg-b" href="'+FG_BUSCA+'" target="_blank" rel="noopener">Ver a Meditação da Palavra de hoje no YouTube</a>';}}
 /* notícias do Papa e da Igreja: vêm pela função "igreja" do cofre (os sites do Vaticano não deixam o app ler direto) */
 const dataCurta=t=>{const d=new Date(t);return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});};
 async function igNoticias(){const box=$('#lx-ig-news');if(!box||box.dataset.ok)return;box.dataset.ok='1';
