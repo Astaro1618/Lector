@@ -757,7 +757,7 @@ body.bible-dock #luc-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x
 :root[data-cara] .c-tit h2,:root[data-cara] .c-num{margin:0;font-family:var(--display)}
 @media (max-width:899px){
   :root[data-cara] .lib-head{position:static;padding:14px 16px 0}
-  :root[data-cara] .head-actions{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;width:auto;max-width:none;background:var(--nav,var(--surface));border-top:1px solid var(--line);padding-bottom:var(--sab,0px)}
+  :root[data-cara] .head-actions{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:0;width:auto;max-width:none;background:var(--nav,var(--surface));border-top:1px solid var(--line);padding-bottom:var(--sab,0px)}
   :root[data-cara] .head-actions .icon-btn{width:auto;height:62px;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--nav-ink,var(--ink));font-size:11px}
   :root[data-cara] .head-actions .icon-btn .aa{font-size:17px!important;line-height:20px}
   :root[data-cara] .head-actions .add{position:fixed;right:16px;bottom:calc(76px + var(--sab,0px));width:54px;height:54px;padding:0;margin:0;font-size:0;gap:0;justify-content:center;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,.28)}
@@ -882,7 +882,7 @@ body.bible-dock #luc-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x
 .dia-st{color:var(--muted);padding:18px 0}
 .dia-fonte{font-size:12.5px;color:var(--muted);margin:16px 0 0}.dia-fonte a{color:inherit}
 :root[data-cara="breviario"] .c-lit .ghost{margin-top:14px;color:#fff;border-color:#8FA8CC}
-@media (max-width:899px){:root[data-cara] .head-actions{grid-template-columns:repeat(6,minmax(0,1fr))}:root[data-cara] .head-actions .icon-btn{font-size:10.5px}}
+@media (max-width:899px){:root[data-cara] .head-actions{grid-template-columns:none}:root[data-cara] .head-actions .icon-btn{font-size:10.5px}}
 /* ---------- Escritura: estado de carregamento e versículo vindo de outra tradução ---------- */
 @keyframes lxgira{to{transform:rotate(360deg)}}
 .empty.carr .spin{width:30px;height:30px;margin:0 auto 14px;border-radius:50%;border:3px solid var(--line,#ccc);border-top-color:var(--accent,#2F6B4F);animation:lxgira .9s linear infinite}
