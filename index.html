@@ -723,11 +723,10 @@ dialog{border:0;padding:0;background:var(--panel);color:var(--ink);width:min(560
 body.bible-mode>*:not(#luc):not(script):not(.toast):not(textarea){display:none!important}
 body.bible-mode{background:#1b1a1e}
 /* Escritura encaixada ao lado do livro (só no computador) */
-:root{--dock-w:clamp(360px,22vw,440px)}
+:root{--dock-w:clamp(360px,30vw,640px)}
 body.bible-dock #luc{position:fixed;top:34px;bottom:0;width:var(--dock-w);min-height:0;overflow-y:auto;overflow-x:hidden;z-index:30;transform:translateZ(0);overscroll-behavior:contain;box-shadow:0 0 24px rgba(0,0,0,.22)}
 body.bible-dock.dock-r #luc,body.bible-dock.dock-r #luc-dockbar{right:0}
 body.bible-dock.dock-l #luc,body.bible-dock.dock-l #luc-dockbar{left:0}
-body.bible-dock.dock-r #lx-reader{right:var(--dock-w)}body.bible-dock.dock-l #lx-reader{left:var(--dock-w)}
 body.bible-dock #luc .top{top:0}
 #luc-dockbar{position:fixed;top:0;height:34px;width:var(--dock-w);z-index:31;display:flex;align-items:center;gap:6px;padding:0 6px 0 10px;background:var(--surface,#fff);color:var(--ink,#222);border-bottom:1px solid var(--line,#ddd);font-size:13px}
 #luc-dockbar[hidden]{display:none}
@@ -2162,7 +2161,7 @@ $('#lx-range').addEventListener('input',e=>{setFrac(e.target.value/1000);});
 document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target!==s)return;
   /* no celular, o toque que abriu a janela (ex.: "Traduzir") termina em cima do fundo dela: não pode fechar na mesma hora */
   if(Date.now()-(openSheet.t||0)<600)return;closeSheets();}));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.querySelector('.sheet:not([hidden])'))closeSheets();else if(cur)closeBook();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.body.classList.contains('bible-dock')&&window.lucInfo)window.lucInfo.fecha();else if(document.querySelector('.sheet:not([hidden])'))closeSheets();else if(cur)closeBook();}});
 document.querySelectorAll('[data-set]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.set;const f=cur?frac():0;
   const faz=()=>{S[k]=k==='lh'?parseFloat(b.dataset.v):b.dataset.v;saveSettings();applySettings();if((k==='layout'||k==='cara')&&!cur)return renderLibrary();};
   {faz();if(cur&&k!=='theme')requestAnimationFrame(()=>setFrac(f));}}));
@@ -2985,7 +2984,7 @@ $('#lx-fs').onclick=toggleFS;
 $('#lx-fsbtn').onclick=()=>{closeSheets();toggleFS();};
 document.addEventListener('fullscreenchange',()=>{$('#lx-fsbtn').textContent=document.fullscreenElement?'Sair da tela cheia':'Tela cheia';});
 document.addEventListener('keydown',e=>{
-  if(!cur||document.querySelector('.sheet:not([hidden])'))return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;
+  if(!cur||document.querySelector('.sheet:not([hidden])'))return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;if(document.body.classList.contains('bible-dock')&&t&&t.closest&&t.closest('#luc'))return;
   const k=e.key;if((k==='g'||k==='G')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();openJump();return;}
   if((e.ctrlKey||e.metaKey)&&cur.pdf&&(k==='+'||k==='='||k==='-'||k==='_'||k==='0')){e.preventDefault();setZoom(k==='0'?1:(cur.book.zoom||1)*(k==='-'||k==='_'?1/1.15:1.15));return;}
   if((k==='f'||k==='F')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();toggleFS();return;}
@@ -5142,14 +5141,14 @@ lucAquecer();addEventListener("lector-login",lucAquecer);
 
 /* ---------- integração com o Lector ---------- */
 let from=null,libScroll=0,bibScroll=0,bodyOv="";
-function dockLado(l){const ja=document.body.classList.contains('dock-l')?'l':'r';document.body.classList.toggle('dock-l',l==='l');document.body.classList.toggle('dock-r',l!=='l');try{localStorage.setItem('lector-dock-lado',l);}catch(e){}if(ja!==l)setTimeout(()=>window.dispatchEvent(new Event('resize')),60);}
+function dockLado(l){const ja=document.body.classList.contains('dock-l')?'l':'r';document.body.classList.toggle('dock-l',l==='l');document.body.classList.toggle('dock-r',l!=='l');try{localStorage.setItem('lector-dock-lado',l);}catch(e){}}
 function lucOpen(dock){
   if(!LROOT.hidden){if(DOCK&&dock)lucClose();return;}
   const rd=document.getElementById('lx-reader');
   if(dock&&innerWidth>=900&&rd&&!rd.hidden){DOCK=true;let l='r';try{l=localStorage.getItem('lector-dock-lado')==='l'?'l':'r';}catch(e){}
     document.body.classList.add('bible-dock');dockLado(l);LROOT.hidden=false;document.getElementById("luc-dockbar").hidden=false;
     if(!started){lucStart();LROOT.scrollTop=0;}else LROOT.scrollTop=bibScroll;
-    setTimeout(()=>window.dispatchEvent(new Event('resize')),60);return;}
+    return;}
   libScroll=window.scrollY;bodyOv=document.body.style.overflow;document.body.style.overflow="";
   document.body.classList.add("bible-mode");LROOT.hidden=false;try{localStorage.setItem("lector-modo","biblia");}catch(e){}
   if(!started){lucStart();window.scrollTo(0,0);}else window.scrollTo(0,bibScroll);
@@ -5157,7 +5156,7 @@ function lucOpen(dock){
 function lucClose(){
   if(LROOT.hidden)return;
   if(DOCK){bibScroll=LROOT.scrollTop;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();LROOT.hidden=true;DOCK=false;
-    document.body.classList.remove('bible-dock','dock-l','dock-r');document.getElementById("luc-dockbar").hidden=true;setTimeout(()=>window.dispatchEvent(new Event('resize')),60);return;}
+    document.body.classList.remove('bible-dock','dock-l','dock-r');document.getElementById("luc-dockbar").hidden=true;return;}
   bibScroll=window.scrollY;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();
   LROOT.hidden=true;try{localStorage.removeItem("lector-modo");}catch(e){}document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
 }
@@ -5172,7 +5171,7 @@ window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucO
   /* abre a Bíblia numa referência escrita ("Lc 19,11-28", "Ap 4,1-11"), com os versículos em destaque */
   ref(txt){const r=parseRef(String(txt||'').split(/[;+]/)[0].replace(/(\d)[a-z]\b/gi,'$1'));if(!r)return false;MARCA=null;
     if(started){lucOpen();goTo(r.b,r.c,r.v1,r.v2);ls.set("luc-pos",POS);}else{POS={b:r.b,c:r.c};PEND_V=r.v1?{v1:r.v1,v2:r.v2||r.v1}:null;lucOpen();}return true;}};
-window.addEventListener("keydown",e=>{if(!LROOT.hidden&&(DOCK?LROOT.contains(e.target):!LROOT.contains(e.target)))e.stopPropagation();},true);
+window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!DOCK&&!LROOT.contains(e.target))e.stopPropagation();},true);
 document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen(!!e.target.closest("#lx-bible2"));}});
 
 })();
