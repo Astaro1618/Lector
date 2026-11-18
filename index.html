@@ -1400,7 +1400,7 @@ async function renderDia(){const el=$('#lx-dial');
   const row=id=>R.find(x=>x.includes('data-r="'+id+'"'))||'',aberta=x=>x.replace('<details class="ig-r"','<details open class="ig-r"');
   const extra=[['Opus Dei · Evangelho diário','https://opusdei.org/pt-br/page/evangelho-diario/'],['Evangeli.net · comentário do Evangelho','https://evangeli.net/evangelho/calendario/tempo-comum'],['Aleteia · santo do dia','https://pt.aleteia.org/']];
   let h=cab;
-  if(igTab==='hoje'){h+='<div class="fg"><p class="ig-sec-t">Meditação da Palavra · Frei Gilson</p><div id="lx-fg-b"><p class="dia-st">Buscando o vídeo de hoje…</p></div></div>'+(leit?'<p class="ig-sec-t">Leituras de hoje'+(refEv?' · '+esc(refEv):'')+'</p>'+leit:'')+'<p class="ig-sec-t">Mais para hoje</p>'+row('santo')+row('terco')+row('plano');}
+  if(igTab==='hoje'){h+='<div class="fg"><p class="ig-sec-t">Meditação da Palavra · Frei Gilson</p><div id="lx-fg-b"><p class="dia-st">Buscando o vídeo de hoje…</p></div></div>'+(leit?'<p class="ig-sec-t">Leituras de hoje'+(refEv?' · '+esc(refEv):'')+'</p>'+leit:'')+'<p class="ig-sec-t">Mais para hoje</p>'+row('terco');}   /* santo do dia e plano de leitura saíram daqui por enquanto (o código deles continua) */
   else if(igTab==='evq'){h+=aberta(row('med'))||'<p class="dia-st">A meditação de hoje ainda não está disponível.</p>';h+='<p class="dia-mais"><a href="https://evangelhoquotidiano.org/" target="_blank" rel="noopener">Abrir o Evangelho Quotidiano</a></p>';}
   else if(igTab==='vat'){h+=aberta(row('papa'));}
   else{h+=aberta(row('mais').replace(/<div class="ig-l">.*?<\/div>/s,m=>m.replace('</div>',extra.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>').join('')+'</div>')));}
