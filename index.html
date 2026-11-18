@@ -858,6 +858,7 @@ body.bible-mode{background:#1b1a1e}
 .dia-sec{border-bottom:1px solid var(--line)}
 .dia-sec summary{list-style:none;cursor:pointer;min-height:52px;padding:10px 28px 10px 0;display:flex;flex-direction:column;justify-content:center;position:relative}
 .dia-sec summary::-webkit-details-marker{display:none}
+.dia-sec summary{padding-right:76px!important}.dia-bib{position:absolute;right:34px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}.dia-bib:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent)}.dia-bib svg{width:20px;height:20px}
 .dia-sec summary span{font-family:var(--display);font-weight:600;font-size:19px}
 .dia-sec summary::after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:22px;color:var(--muted)}
 .dia-sec[open] summary::after{content:"–"}
@@ -1358,7 +1359,7 @@ async function diaBio(id){const k='lector-bio-'+id;try{const g=localStorage.getI
   const L=(d.body.textContent||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).filter(x=>!/^EVANGELIZO$/i.test(x)).slice(1);
   const t=L.join('\n');try{if(t)localStorage.setItem(k,t);}catch(e){}return t;}
 function diaP(t){return diaSemNum(t).split(/\n+/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');}
-function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
+function diaSec(rot,ref,corpo,aberto){return corpo?'<details class="dia-sec"'+(aberto?' open':'')+'><summary><span>'+rot+'</span>'+(ref?'<small>'+esc(ref)+'</small><button type="button" class="dia-bib" data-ref="'+esc(ref)+'" aria-label="Abrir '+esc(ref)+' na Bíblia" title="Abrir na Bíblia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg></button>':'')+'</summary><div class="dia-tx">'+corpo+'</div></details>':'';}
 /* ---------- Igreja: o dia da Igreja em linhas calmas (cada uma abre e fecha; só o Evangelho vem aberto) ---------- */
 const IG_ABERTAS=new Set(['ev']);
 const IG_TABS=[['hoje','Hoje'],['evq','Evangelho Quotidiano'],['vat','Vaticano'],['mais','Outros sites']];
@@ -1408,6 +1409,7 @@ async function renderDia(){const el=$('#lx-dial');
   el.innerHTML=h;
   const de=$('#lx-dia-de-novo');if(de)de.onclick=()=>{diaCache=null;renderDia();};
   tercoDesenha();if(igTab==='hoje')fgDesenha();
+  el.querySelectorAll('.dia-bib').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!window.lucInfo||!window.lucInfo.ref||!window.lucInfo.ref(b.dataset.ref))toast('Não consegui achar essa passagem na Bíblia');else closeSheets();}));
   el.querySelectorAll('details.ig-r').forEach(d=>d.addEventListener('toggle',()=>{const id=d.dataset.r;if(d.open){IG_ABERTAS.add(id);if(id==='papa')igNoticias();}else IG_ABERTAS.delete(id);}));
   if(igTab==='vat')igNoticias();
   el.querySelectorAll('details.dia-bio').forEach(dt=>dt.addEventListener('toggle',async()=>{if(!dt.open||dt.dataset.ok)return;dt.dataset.ok='1';const box=dt.querySelector('.dia-tx');
@@ -5033,7 +5035,7 @@ $("#bDiagCopy").onclick=()=>{
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Relatório copiado")).catch(()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Relatório copiado");}catch(e){}ta.remove();});
 };
 
-let started=false;
+let started=false,PEND_V=null;
 /* ---------- Cofre de Luiz e Raquel (Supabase): login e Bíblias privadas ----------
    A chave abaixo é a "publicável": pode ficar no site. Quem protege as Bíblias são as regras do
    servidor (só membros logados leem o depósito "biblias"). As Bíblias ficam só na memória. */
@@ -5110,7 +5112,7 @@ async function lucStart(){if(started)return;started=true;
   // abre a Bíblia no ponto marcado ("onde parei"), se houver
   if(MARCA&&MARCA.b>=0&&MARCA.b<BOOKS.length&&chCount(MARCA.b)){POS={b:MARCA.b,c:MARCA.c};render();
     const el=document.getElementById("v"+MARCA.v);if(el&&MARCA.v>1)setTimeout(()=>scrollToEl(el),60);}
-  else render();
+  else{render(PEND_V);PEND_V=null;}
 }
 /* aquece em segundo plano: depois que a pessoa entra, as Bíblias já ficam prontas antes de ela abrir a Escritura */
 function lucAquecer(){if(!sbSess())return;const c=navigator.connection;if(c&&(c.saveData||/^(slow-2g|2g)$/.test(c.effectiveType||'')))return;setTimeout(()=>{(window.requestIdleCallback||setTimeout)(()=>{lucSync(true).catch(()=>{});});},9000);}
@@ -5130,7 +5132,10 @@ function lucClose(){
   LROOT.hidden=true;try{localStorage.removeItem("lector-modo");}catch(e){}document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
 }
 $("#lucBack").onclick=lucClose;
-window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();},abre:()=>lucOpen(),fecha:()=>lucClose()};
+window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();},abre:()=>lucOpen(),fecha:()=>lucClose(),
+  /* abre a Bíblia numa referência escrita ("Lc 19,11-28", "Ap 4,1-11"), com os versículos em destaque */
+  ref(txt){const r=parseRef(String(txt||'').split(/[;+]/)[0].replace(/(\d)[a-z]\b/gi,'$1'));if(!r)return false;MARCA=null;
+    if(started){lucOpen();goTo(r.b,r.c,r.v1,r.v2);ls.set("luc-pos",POS);}else{POS={b:r.b,c:r.c};PEND_V=r.v1?{v1:r.v1,v2:r.v2||r.v1}:null;lucOpen();}return true;}};
 window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!LROOT.contains(e.target))e.stopPropagation();},true);
 document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen();}});
 
