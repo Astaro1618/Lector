@@ -724,10 +724,11 @@ body.bible-mode>*:not(#luc):not(script):not(.toast):not(textarea){display:none!i
 body.bible-mode{background:#1b1a1e}
 /* Escritura encaixada ao lado do livro (só no computador) */
 :root{--dock-w:clamp(360px,30vw,640px)}
-body.bible-dock #luc{position:fixed;top:34px;bottom:0;width:var(--dock-w);min-height:0;overflow-y:auto;overflow-x:hidden;z-index:30;transform:translateZ(0);overscroll-behavior:contain;box-shadow:0 0 24px rgba(0,0,0,.22)}
+body.bible-dock #luc{position:fixed;top:34px;bottom:0;width:var(--dock-w);min-height:0;overflow:hidden;padding:0;z-index:30;transform:translateZ(0);overscroll-behavior:contain;box-shadow:0 0 24px rgba(0,0,0,.22)}
 body.bible-dock.dock-r #luc,body.bible-dock.dock-r #luc-dockbar{right:0}
 body.bible-dock.dock-l #luc,body.bible-dock.dock-l #luc-dockbar{left:0}
 body.bible-dock #luc .top{top:0}
+body.bible-dock #luc-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
 #luc-dockbar{position:fixed;top:0;height:34px;width:var(--dock-w);z-index:31;display:flex;align-items:center;gap:6px;padding:0 6px 0 10px;background:var(--surface,#fff);color:var(--ink,#222);border-bottom:1px solid var(--line,#ddd);font-size:13px}
 #luc-dockbar[hidden]{display:none}
 #luc-dockbar b{flex:1;font-weight:600}
@@ -4143,6 +4144,10 @@ if(location.port==='8765'){
 (function(){
 const LROOT=document.getElementById("luc");
 const $=s=>LROOT.querySelector(s);
+/* a barra de cima e o texto ficam numa caixa que rola sozinha quando a Escritura está encaixada ao lado do livro;
+   os itens fixos (barra de ações, gaveta, aviso) ficam fora dela */
+const LSC=document.createElement("div");LSC.id="luc-scroll";
+{const t=LROOT.querySelector(".top"),m=LROOT.querySelector("#read");LROOT.insertBefore(LSC,t);LSC.appendChild(t);LSC.appendChild(m);}
 const BOOKS=[
 ["Gn","Gênesis",[]],["Ex","Êxodo",[]],["Lv","Levítico",[]],["Nm","Números",[]],["Dt","Deuteronômio",[]],
 ["Js","Josué",[]],["Jz","Juízes",[]],["Rt","Rute",[]],["1Sm","1 Samuel",["1 sam"]],["2Sm","2 Samuel",["2 sam"]],
@@ -4796,16 +4801,16 @@ function render(hl){
 /* barra de cima: some ao descer a leitura, volta ao subir ou ao tocar na pílula */
 let topoY=0,topoFixo=false;
 let DOCK=false;
-function sTop(){return DOCK?LROOT.scrollTop:window.scrollY;}
-function sTo(y){if(DOCK)LROOT.scrollTop=y;else window.scrollTo(0,y);}
+function sTop(){return DOCK?LSC.scrollTop:window.scrollY;}
+function sTo(y){if(DOCK)LSC.scrollTop=y;else window.scrollTo(0,y);}
 function mostraTopo(on){const t=$(".top");if(!t)return;t.classList.toggle("oculto",!on);
   const m=$("#mini");if(m){m.classList.toggle("on",!on&&sTop()>t.offsetHeight);const b=BOOKS[POS.b];$("#miniTxt").textContent=b?b[0]+" "+POS.c:"";}}
 window.addEventListener("scroll",()=>{if(LROOT.hidden)return;const y=sTop(),t=$(".top");if(!t)return;
   if(y<t.offsetHeight)mostraTopo(true);else if(y>topoY+8)mostraTopo(false);else if(y<topoY-24)mostraTopo(true);
   topoY=y;},{passive:true});
-LROOT.addEventListener("scroll",()=>window.dispatchEvent(new Event("scroll")),{passive:true});
+LSC.addEventListener("scroll",()=>window.dispatchEvent(new Event("scroll")),{passive:true});
 $("#mini").onclick=()=>mostraTopo(true);
-function scrollToEl(el){if(DOCK)LROOT.scrollTop+=el.getBoundingClientRect().top-LROOT.getBoundingClientRect().top-$(".top").offsetHeight-12;else window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-$(".top").offsetHeight-12);}
+function scrollToEl(el){if(DOCK)LSC.scrollTop+=el.getBoundingClientRect().top-LSC.getBoundingClientRect().top-$(".top").offsetHeight-12;else window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-$(".top").offsetHeight-12);}
 function step(d){
   let {b,c}=POS;c+=d;
   while(true){
@@ -5147,7 +5152,7 @@ function lucOpen(dock){
   const rd=document.getElementById('lx-reader');
   if(dock&&innerWidth>=900&&rd&&!rd.hidden){DOCK=true;let l='r';try{l=localStorage.getItem('lector-dock-lado')==='l'?'l':'r';}catch(e){}
     document.body.classList.add('bible-dock');dockLado(l);LROOT.hidden=false;document.getElementById("luc-dockbar").hidden=false;
-    if(!started){lucStart();LROOT.scrollTop=0;}else LROOT.scrollTop=bibScroll;
+    if(!started){lucStart();LSC.scrollTop=0;}else LSC.scrollTop=bibScroll;
     return;}
   libScroll=window.scrollY;bodyOv=document.body.style.overflow;document.body.style.overflow="";
   document.body.classList.add("bible-mode");LROOT.hidden=false;try{localStorage.setItem("lector-modo","biblia");}catch(e){}
@@ -5155,7 +5160,7 @@ function lucOpen(dock){
 }
 function lucClose(){
   if(LROOT.hidden)return;
-  if(DOCK){bibScroll=LROOT.scrollTop;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();LROOT.hidden=true;DOCK=false;
+  if(DOCK){bibScroll=LSC.scrollTop;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();LROOT.hidden=true;DOCK=false;
     document.body.classList.remove('bible-dock','dock-l','dock-r');document.getElementById("luc-dockbar").hidden=true;return;}
   bibScroll=window.scrollY;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();
   LROOT.hidden=true;try{localStorage.removeItem("lector-modo");}catch(e){}document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
