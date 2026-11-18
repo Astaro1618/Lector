@@ -722,6 +722,19 @@ dialog{border:0;padding:0;background:var(--panel);color:var(--ink);width:min(560
 #luc[hidden]{display:none!important}
 body.bible-mode>*:not(#luc):not(script):not(.toast):not(textarea){display:none!important}
 body.bible-mode{background:#1b1a1e}
+/* Escritura encaixada ao lado do livro (só no computador) */
+:root{--dock-w:clamp(360px,22vw,440px)}
+body.bible-dock #luc{position:fixed;top:34px;bottom:0;width:var(--dock-w);min-height:0;overflow-y:auto;overflow-x:hidden;z-index:30;transform:translateZ(0);overscroll-behavior:contain;box-shadow:0 0 24px rgba(0,0,0,.22)}
+body.bible-dock.dock-r #luc,body.bible-dock.dock-r #luc-dockbar{right:0}
+body.bible-dock.dock-l #luc,body.bible-dock.dock-l #luc-dockbar{left:0}
+body.bible-dock.dock-r #lx-reader{right:var(--dock-w)}body.bible-dock.dock-l #lx-reader{left:var(--dock-w)}
+body.bible-dock #luc .top{top:0}
+#luc-dockbar{position:fixed;top:0;height:34px;width:var(--dock-w);z-index:31;display:flex;align-items:center;gap:6px;padding:0 6px 0 10px;background:var(--surface,#fff);color:var(--ink,#222);border-bottom:1px solid var(--line,#ddd);font-size:13px}
+#luc-dockbar[hidden]{display:none}
+#luc-dockbar b{flex:1;font-weight:600}
+#luc-dockbar .dk-grip{cursor:grab;touch-action:none;color:var(--muted,#888);font-size:16px;padding:0 4px;user-select:none}
+#luc-dockbar button{border:0;background:transparent;color:inherit;font:inherit;font-size:16px;width:28px;height:28px;border-radius:8px;cursor:pointer}
+#luc-dockbar button:hover{background:color-mix(in srgb,var(--ink,#222) 9%,transparent)}
 #luc .lback{display:flex;align-items:center;gap:12px}
 
 /* ================= Caras do Lector (Aa > Cara do Lector) =================
@@ -1144,7 +1157,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
     <div class="field ho-conv" id="lx-hlcv" hidden><span>Conversa</span><div class="rx-row"></div><div class="nt-re" hidden></div><div class="ho-resp"><textarea placeholder="Responder…"></textarea><button class="btn">Enviar</button></div></div>
     <div id="lx-hlars" hidden><div class="field"><span>Serve contra</span><div class="ars-chips" id="lx-hla"></div></div>
     <div class="field"><span>Tema</span><div class="ars-chips" id="lx-hlt"></div><input id="lx-hltn" class="ars-novo" list="lx-temas" placeholder="Outro tema (Enter para incluir)"><datalist id="lx-temas"></datalist></div></div>
-    <div class="actions"><button class="ghost esc" id="lx-hlesc" aria-label="Arsenal: apologética" title="Arsenal"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span id="lx-hlescn"></span></button><button class="ghost" id="lx-hlr">Remover destaque</button><button class="btn" id="lx-hls">Salvar</button></div>
+    <div class="actions"><button class="ghost esc" id="lx-hlesc" aria-label="Arsenal: apologética" title="Arsenal"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span id="lx-hlescn"></span></button><button class="ghost" id="lx-hlcp">Copiar</button><button class="ghost" id="lx-hlr">Remover destaque</button><button class="btn" id="lx-hls">Salvar</button></div>
   </div>
 </div>
 
@@ -2483,6 +2496,8 @@ function openHL(id){
   $('#lx-hlc').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===h.color));
   openSheet('#lx-hl');
 }
+$('#lx-hlcp').onclick=()=>{const h=(cur.book.highlights||[]).find(x=>x.id===hlId);if(!h)return;const fim=h.more&&h.more.length?h.more[h.more.length-1].key:null,miss=!cur.book.author;
+  (navigator.clipboard?navigator.clipboard.writeText(withCite(h.text,h.key,fim)):Promise.reject()).then(()=>toast(miss?'Copiado. Falta o autor: defina nos ⋮ do livro':'Copiado com a citação')).catch(()=>toast('Não foi possível copiar'));};
 $('#lx-hlc').onclick=e=>{const b=e.target.closest('button');if(!b)return;hlColor=b.dataset.v;$('#lx-hlc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));};
 $('#lx-hls').onclick=()=>{const h=cur&&(cur.book.highlights||[]).find(x=>x.id===hlId);if(!h)return;h.color=hlColor;h.alvos=[...hlAlvos];h.temas=[...hlTemas];h.note=$('#lx-hln').value.trim();
   h.editado=Date.now();page.querySelectorAll('mark[data-h="'+h.id+'"],.hlbox[data-h="'+h.id+'"]').forEach(m=>{m.dataset.c=h.color;if(m.tagName==='MARK')m.classList.toggle('noted',!!h.note);});
@@ -4075,6 +4090,7 @@ if(location.port==='8765'){
 }
 })();
 </script>
+<div id="luc-dockbar" hidden><span class="dk-grip" title="Arraste para o outro lado" aria-label="Arrastar para o outro lado">⠿</span><b>Escritura</b><button type="button" id="luc-dk-sw" aria-label="Trocar de lado" title="Trocar de lado">⇄</button><button type="button" id="luc-dk-x" aria-label="Fechar a Escritura" title="Fechar">×</button></div>
 <div id="luc" hidden>
 <div class="top"><div class="wrap">
   <div class="bar">
@@ -4775,18 +4791,22 @@ function render(hl){
   R.innerHTML=note+h+pager();R.classList.remove('troca');void R.offsetWidth;R.classList.add('troca');
   mostraMarca();
   if(hl){const el=document.getElementById("v"+hl.v1);if(el)scrollToEl(el);setTimeout(()=>LROOT.querySelectorAll(".vs.hl").forEach(x=>x.classList.remove("hl")),2600);}
-  else window.scrollTo(0,0);
+  else sTo(0);
   ls.set("luc-pos",POS);
 }
 /* barra de cima: some ao descer a leitura, volta ao subir ou ao tocar na pílula */
 let topoY=0,topoFixo=false;
+let DOCK=false;
+function sTop(){return DOCK?LROOT.scrollTop:window.scrollY;}
+function sTo(y){if(DOCK)LROOT.scrollTop=y;else window.scrollTo(0,y);}
 function mostraTopo(on){const t=$(".top");if(!t)return;t.classList.toggle("oculto",!on);
-  const m=$("#mini");if(m){m.classList.toggle("on",!on&&window.scrollY>t.offsetHeight);const b=BOOKS[POS.b];$("#miniTxt").textContent=b?b[0]+" "+POS.c:"";}}
-window.addEventListener("scroll",()=>{if(LROOT.hidden)return;const y=window.scrollY,t=$(".top");if(!t)return;
+  const m=$("#mini");if(m){m.classList.toggle("on",!on&&sTop()>t.offsetHeight);const b=BOOKS[POS.b];$("#miniTxt").textContent=b?b[0]+" "+POS.c:"";}}
+window.addEventListener("scroll",()=>{if(LROOT.hidden)return;const y=sTop(),t=$(".top");if(!t)return;
   if(y<t.offsetHeight)mostraTopo(true);else if(y>topoY+8)mostraTopo(false);else if(y<topoY-24)mostraTopo(true);
   topoY=y;},{passive:true});
+LROOT.addEventListener("scroll",()=>window.dispatchEvent(new Event("scroll")),{passive:true});
 $("#mini").onclick=()=>mostraTopo(true);
-function scrollToEl(el){window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-$(".top").offsetHeight-12);}
+function scrollToEl(el){if(DOCK)LROOT.scrollTop+=el.getBoundingClientRect().top-LROOT.getBoundingClientRect().top-$(".top").offsetHeight-12;else window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-$(".top").offsetHeight-12);}
 function step(d){
   let {b,c}=POS;c+=d;
   while(true){
@@ -5079,7 +5099,7 @@ const sbBiblias=()=>lucSync();
 function lucDepois(id){if(!started)return;
   SEL=SEL.filter(x=>TR.some(t=>t.id===x)).slice(0,1);if(!SEL.length&&TR.length){SEL=[TR[0].id];ls.set("luc-sel",SEL);}
   renderTrs();
-  if(!LROOT.hidden&&(!lucDesenhou||SEL[0]===id)){const y=window.scrollY;render();window.scrollTo(0,y);}}
+  if(!LROOT.hidden&&(!lucDesenhou||SEL[0]===id)){const y=sTop();render();sTo(y);}}
 function renderNuvem(msg){const el=$("#nuvem");if(!el)return;const s=sbSess();
   if(s){const em=(s.user&&s.user.email)||"";
     el.innerHTML=`<h4>Cofre de vocês</h4><p class="status">Conectado como <b>${esc(em)}</b>. ${msg?esc(msg):"As Bíblias de vocês vêm do cofre."}</p><button class="btn sm ghost" id="sbSair">Sair</button>`;}
@@ -5122,24 +5142,38 @@ lucAquecer();addEventListener("lector-login",lucAquecer);
 
 /* ---------- integração com o Lector ---------- */
 let from=null,libScroll=0,bibScroll=0,bodyOv="";
-function lucOpen(){
-  if(!LROOT.hidden)return;
+function dockLado(l){const ja=document.body.classList.contains('dock-l')?'l':'r';document.body.classList.toggle('dock-l',l==='l');document.body.classList.toggle('dock-r',l!=='l');try{localStorage.setItem('lector-dock-lado',l);}catch(e){}if(ja!==l)setTimeout(()=>window.dispatchEvent(new Event('resize')),60);}
+function lucOpen(dock){
+  if(!LROOT.hidden){if(DOCK&&dock)lucClose();return;}
+  const rd=document.getElementById('lx-reader');
+  if(dock&&innerWidth>=900&&rd&&!rd.hidden){DOCK=true;let l='r';try{l=localStorage.getItem('lector-dock-lado')==='l'?'l':'r';}catch(e){}
+    document.body.classList.add('bible-dock');dockLado(l);LROOT.hidden=false;document.getElementById("luc-dockbar").hidden=false;
+    if(!started){lucStart();LROOT.scrollTop=0;}else LROOT.scrollTop=bibScroll;
+    setTimeout(()=>window.dispatchEvent(new Event('resize')),60);return;}
   libScroll=window.scrollY;bodyOv=document.body.style.overflow;document.body.style.overflow="";
   document.body.classList.add("bible-mode");LROOT.hidden=false;try{localStorage.setItem("lector-modo","biblia");}catch(e){}
   if(!started){lucStart();window.scrollTo(0,0);}else window.scrollTo(0,bibScroll);
 }
 function lucClose(){
   if(LROOT.hidden)return;
+  if(DOCK){bibScroll=LROOT.scrollTop;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();LROOT.hidden=true;DOCK=false;
+    document.body.classList.remove('bible-dock','dock-l','dock-r');document.getElementById("luc-dockbar").hidden=true;setTimeout(()=>window.dispatchEvent(new Event('resize')),60);return;}
   bibScroll=window.scrollY;LROOT.querySelectorAll("dialog[open]").forEach(d=>d.close());closeDrawer();
   LROOT.hidden=true;try{localStorage.removeItem("lector-modo");}catch(e){}document.body.classList.remove("bible-mode");document.body.style.overflow=bodyOv;window.scrollTo(0,libScroll);
 }
 $("#lucBack").onclick=lucClose;
+document.getElementById("luc-dk-x").onclick=lucClose;
+document.getElementById("luc-dk-sw").onclick=()=>dockLado(document.body.classList.contains('dock-l')?'r':'l');
+{const g=document.querySelector("#luc-dockbar .dk-grip");let arr=false;
+  g.addEventListener('pointerdown',e=>{arr=true;try{g.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();});
+  g.addEventListener('pointermove',e=>{if(arr)dockLado(e.clientX<innerWidth/2?'l':'r');});
+  g.addEventListener('pointerup',()=>{arr=false;});}
 window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();},abre:()=>lucOpen(),fecha:()=>lucClose(),
   /* abre a Bíblia numa referência escrita ("Lc 19,11-28", "Ap 4,1-11"), com os versículos em destaque */
   ref(txt){const r=parseRef(String(txt||'').split(/[;+]/)[0].replace(/(\d)[a-z]\b/gi,'$1'));if(!r)return false;MARCA=null;
     if(started){lucOpen();goTo(r.b,r.c,r.v1,r.v2);ls.set("luc-pos",POS);}else{POS={b:r.b,c:r.c};PEND_V=r.v1?{v1:r.v1,v2:r.v2||r.v1}:null;lucOpen();}return true;}};
-window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!LROOT.contains(e.target))e.stopPropagation();},true);
-document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen();}});
+window.addEventListener("keydown",e=>{if(!LROOT.hidden&&(DOCK?LROOT.contains(e.target):!LROOT.contains(e.target)))e.stopPropagation();},true);
+document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen(!!e.target.closest("#lx-bible2"));}});
 
 })();
 </script>
