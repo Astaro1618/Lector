@@ -218,6 +218,8 @@ body.logado .lib-foot{display:none}
 .sheet.hist{align-items:stretch}
 .sheet.hist .panel{max-width:640px;max-height:100vh;height:100%;border-radius:0}
 .hs-dia{position:sticky;top:-10px;z-index:1;background:var(--surface);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:14px 0 6px}
+/* Arsenal e Diário saíram da barra de cima (código mantido) */
+#lx-ars-btn,#lx-diary-btn{display:none!important}
 /* Nós dois: linha do tempo leve (cor só na bolinha e no nome) */
 .hs-top{display:grid;gap:12px;margin:2px 0 4px}
 .ars-chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -1001,7 +1003,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
       <button class="icon-btn" id="lx-bible" aria-label="Bíblia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg><span class="lbl">Escritura</span></button>
       <button class="icon-btn" id="lx-libset" aria-label="Aparência"><span class="aa" style="font-family:var(--display);font-weight:600;font-size:18px">Aa</span><span class="lbl">Aparência</span></button>
       <button class="icon-btn" id="lx-ars-btn" aria-label="Arsenal: argumentos das suas leituras" title="Arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/></svg><span class="lbl">Arsenal</span></button>
-      <button class="icon-btn" id="lx-nos-btn" aria-label="Nós dois: o que cada um fez"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><path d="M14.6 14.4c.6-.3 1.2-.4 1.9-.4 2.1 0 3.8 1.5 4.3 4"/></svg><span class="lbl">Nós dois</span></button>
+      <button class="icon-btn" id="lx-nos-btn" aria-label="Nós: o que cada um fez"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><path d="M14.6 14.4c.6-.3 1.2-.4 1.9-.4 2.1 0 3.8 1.5 4.3 4"/></svg><span class="lbl">Nós</span></button>
       <button class="icon-btn" id="lx-diary-btn" aria-label="Diário de leitura"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span class="lbl">Diário</span></button>
       <button class="add" id="lx-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Adicionar<span class="w">&nbsp;livro</span></button>
     </div>
@@ -1227,7 +1229,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
 <div class="sheet hist" id="lx-hist" hidden>
   <div class="panel" role="dialog" aria-label="Nós dois">
     <button class="tr-x" id="lx-hsx" aria-label="Fechar">×</button>
-    <h2>Nós dois</h2>
+    <h2>Nós</h2>
     <p class="hint" id="lx-hsl"></p>
     <div class="av" id="lx-av" hidden>
       <b>Avisos neste aparelho</b>
