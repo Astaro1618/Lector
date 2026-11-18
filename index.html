@@ -1145,7 +1145,7 @@ body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) 
 </div>
 
 <div class="hl-bar" id="lx-hlbar" hidden>
-  <button class="dot" data-c="y" aria-label="Destacar em amarelo"></button><button class="dot" data-c="g" aria-label="Destacar em verde"></button><button class="dot" data-c="b" aria-label="Destacar em azul"></button><button class="dot" data-c="p" aria-label="Destacar em rosa"></button><button class="nb" data-act="copy">Copiar</button><button class="nb" data-act="note">Citação</button><button class="nb" data-act="tr" id="lx-trbtn">Traduzir</button><button class="nb" data-act="dic" id="lx-dicbtn" hidden>Dicionário</button>
+  <button class="dot" data-c="y" aria-label="Destacar em amarelo"></button><button class="dot" data-c="g" aria-label="Destacar em verde"></button><button class="dot" data-c="b" aria-label="Destacar em azul"></button><button class="dot" data-c="p" aria-label="Destacar em rosa"></button><button class="nb" data-act="copy">Copiar</button><button class="nb" data-act="note">Citação</button><button class="nb" data-act="tr" id="lx-trbtn">Traduzir</button><button class="nb" data-act="dic" id="lx-dicbtn" hidden>Dicionário</button><button class="nb" data-act="bib" id="lx-bibbtn" hidden aria-label="Abrir na Escritura" title="Abrir na Escritura"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg></button>
 </div>
 
 <div class="sheet" id="lx-hl" hidden>
@@ -2395,7 +2395,7 @@ function checkSel(){
   const kE=keyOf(r.endContainer),segs=kE!==k?segmentos(r):null,multi=segs&&segs.length>1?segs:null;
   if(!multi&&e-s<1){bar.hidden=true;return;}
   pend=multi?{key:multi[0].key,s:multi[0].s,e:multi[0].e,more:multi.slice(1).map(x=>({key:x.key,s:x.s,e:x.e})),keyFim:multi[multi.length-1].key,text:multi.map(x=>x.t).join(' ')}:{key:k,s,e,text:T.slice(s,e).replace(/\s+/g,' ')};pend.textP=textoParagrafos(r)||pend.text;{const ini=r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement;pend.naNota=!!(ini&&ini.closest('.lx-nota'));}if(cur&&cur.pdf&&pend.textP)pend.text=pend.textP.replace(/\s*\n\n\s*/g,' ');pend.word=pend.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'');pend.ctx=T.slice(Math.max(0,s-220),Math.min(T.length,e+220)).replace(/\s+/g,' ').trim();
-  const one=!!pend.word&&!/\s/.test(pend.word)&&pend.word.length<=40;const tb=$('#lx-trbtn');tb.textContent='Traduzir';tb.dataset.mode='tr';$('#lx-dicbtn').hidden=!one;bar.hidden=false;placeBar(r);
+  const one=!!pend.word&&!/\s/.test(pend.word)&&pend.word.length<=40;const tb=$('#lx-trbtn');tb.textContent='Traduzir';tb.dataset.mode='tr';$('#lx-dicbtn').hidden=!one;pend.ref=(window.lucInfo&&window.lucInfo.acha)?window.lucInfo.acha(pend.text):null;$('#lx-bibbtn').hidden=!pend.ref;bar.hidden=false;placeBar(r);
 }
 /* barra de destaque junto do trecho: embaixo da seleção (o menu do celular costuma ficar em cima); se não couber, em cima */
 function placeBar(r){
@@ -2435,6 +2435,7 @@ function addHL(p,color){
 }
 function hlAction(btn){if(!pend||!cur)return;
   if(btn.dataset.act==='copy'){const t=withCite(pend.text,pend.key,pend.keyFim);const miss=!cur.book.author;try{getSel().removeAllRanges();}catch(e){}pend=null;$('#lx-hlbar').hidden=true;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(miss?'Copiado. Falta o autor: defina nos ⋮ do livro':'Trecho copiado com a citação')).catch(()=>toast('Não foi possível copiar'));return;}
+  if(btn.dataset.act==='bib'){const ref=pend.ref;try{getSel().removeAllRanges();}catch(e){}pend=null;$('#lx-hlbar').hidden=true;if(!window.lucInfo||!ref||!window.lucInfo.ref(ref,true))toast('Não consegui achar essa passagem na Bíblia');return;}
   if(btn.dataset.act==='tr'||btn.dataset.act==='dic'){const p={...pend};try{getSel().removeAllRanges();}catch(e){}$('#lx-hlbar').hidden=true;markTr(p);const def=btn.dataset.act==='dic';translate(def?p.word:(p.textP||p.text),{p,ctx:p.ctx},def?'def':'tr');return;}const h=addHL(pend,btn.dataset.c||'y');if(btn.dataset.act==='note')openHL(h.id);else toast('Trecho destacado');}
 $('#lx-hlbar').addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();hlAction(b);});
 $('#lx-hlbar').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&e.detail===0)hlAction(b);});
@@ -5174,8 +5175,11 @@ document.getElementById("luc-dk-sw").onclick=()=>dockLado(document.body.classLis
   g.addEventListener('pointerup',()=>{arr=false;});}
 window.lucInfo={BOOKS,CH,ir(b,c){POS={b,c};ls.set("luc-pos",POS);MARCA=null;lucOpen();if(started)render();},abre:()=>lucOpen(),fecha:()=>lucClose(),
   /* abre a Bíblia numa referência escrita ("Lc 19,11-28", "Ap 4,1-11"), com os versículos em destaque */
-  ref(txt){const r=parseRef(String(txt||'').split(/[;+]/)[0].replace(/(\d)[a-z]\b/gi,'$1'));if(!r)return false;MARCA=null;
-    if(started){lucOpen();goTo(r.b,r.c,r.v1,r.v2);ls.set("luc-pos",POS);}else{POS={b:r.b,c:r.c};PEND_V=r.v1?{v1:r.v1,v2:r.v2||r.v1}:null;lucOpen();}return true;}};
+  /* procura um endereço da Bíblia dentro de um texto ("... (Mt 28, 19)") e devolve ele escrito, ou null */
+  acha(t){t=String(t||'').replace(/\s+/g,' ');const re=/((?:[1-3]\s?)?[A-Za-zÀ-ÿ]{2,14}\.?)\s*(\d{1,3})\s*[,:.]\s*(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?/g;let m;
+    while((m=re.exec(t))){const c=m[1]+' '+m[2]+','+m[3]+(m[4]?'-'+m[4]:'');try{const r=parseRef(c);if(r&&!r.fuzzy&&r.v1)return c;}catch(e){}}return null;},
+  ref(txt,dock){const r=parseRef(String(txt||'').split(/[;+]/)[0].replace(/(\d)[a-z]\b/gi,'$1'));if(!r)return false;MARCA=null;
+    if(started){if(LROOT.hidden)lucOpen(dock);goTo(r.b,r.c,r.v1,r.v2);ls.set("luc-pos",POS);}else{POS={b:r.b,c:r.c};PEND_V=r.v1?{v1:r.v1,v2:r.v2||r.v1}:null;lucOpen(dock);}return true;}};
 window.addEventListener("keydown",e=>{if(!LROOT.hidden&&!DOCK&&!LROOT.contains(e.target))e.stopPropagation();},true);
 document.addEventListener("click",e=>{if(e.target.closest("#lx-bible,#lx-bible2")){e.preventDefault();lucOpen(!!e.target.closest("#lx-bible2"));}});
 
