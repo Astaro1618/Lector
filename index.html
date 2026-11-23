@@ -1001,6 +1001,30 @@ body.bible-dock #luc-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x
 #lx-fim button{min-height:42px;padding:0 16px;border-radius:999px;font-weight:600;white-space:nowrap}
 #lx-fim button[data-fim="sim"]{background:var(--accent);color:var(--on-accent)}#lx-fim button[data-fim="nao"]{color:inherit;opacity:.8}
 body:has(#lx-reader:not([hidden])) .lib-head,body:has(#lx-reader:not([hidden])) #lx-shelf,body:has(#lx-reader:not([hidden])) .lib-foot,body:has(#lx-reader:not([hidden])) #lx-ctop{visibility:hidden}   /* leitor aberto: a estante atrás não pode aparecer quando a tela balança (notificações) */
+/* Essencial do dia: cartão quadrado sobre a tela ao abrir o app */
+#lx-essen{position:fixed;inset:0;z-index:300;background:rgba(10,14,18,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+#lx-essen[hidden]{display:none}
+.es-card{background:var(--surface);color:var(--ink);width:min(440px,100%);max-height:88vh;display:flex;flex-direction:column;border-radius:6px;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden}
+.es-card.ok{animation:esPop .45s ease}
+@keyframes esPop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+.es-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.es-x{background:none;border:0;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px}
+.es-corpo{overflow:auto;padding:14px 16px;flex:1 1 auto;-webkit-overflow-scrolling:touch}
+.es-cab{border-left:4px solid var(--c);padding-left:10px;margin-bottom:10px}
+.es-cab small{color:var(--muted);font-size:12px}
+.es-cab h3{margin:4px 0 0;font-size:18px;line-height:1.3}
+.es-ref{font-size:12px;color:var(--muted);margin:12px 0 4px;letter-spacing:.04em;text-transform:uppercase}
+.es-txt p{font-size:15px;line-height:1.5;margin:0 0 8px}
+.es-fg{margin-top:14px}
+.es-foot{padding:12px 16px 16px;border-top:1px solid var(--line)}
+.es-btn{width:100%;border:0;border-radius:6px;padding:14px 12px;font-size:17px;font-weight:700;color:#fff;background:#2E9E5B;box-shadow:0 5px 0 #1E7040;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,box-shadow .08s}
+.es-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #1E7040}
+.es-btn svg{width:22px;height:22px;flex:none}
+.es-btn path{stroke-dasharray:30;stroke-dashoffset:0}
+.es-card.ok .es-btn path{animation:esCheck .5s ease both}
+@keyframes esCheck{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}
+.es-msg{text-align:center;font-size:13px;color:var(--muted);margin:8px 0 0;min-height:18px}
+@media (prefers-reduced-motion:reduce){.es-card.ok,.es-card.ok .es-btn path{animation:none}}
 </style>
 </head>
 <body class="booting">
@@ -1441,7 +1465,7 @@ async function fgVideo(){let c=null;try{c=JSON.parse(localStorage.getItem('lecto
     const id=(String(it.link||'').match(/[?&]v=([\w-]{11})/)||[])[1];if(!id)throw new Error('sem id');
     const v={id,titulo:it.title,data:String(it.pubDate||'').replace(' ','T')};try{localStorage.setItem('lector-fg',JSON.stringify({t:Date.now(),v}));}catch(e){}return v;
   }catch(e){if(c&&c.v)return c.v;throw e;}}   // se a busca falhar, mostra o último vídeo que deu certo
-async function fgDesenha(){const b=$('#lx-fg-b');if(!b)return;
+async function fgDesenha(alvo){const b=alvo||$('#lx-fg-b');if(!b)return;
   try{const v=await fgVideo();
     b.innerHTML='<button class="fg-c" aria-label="Assistir"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="fg-p">▶</span></button><p class="fg-t">'+esc(v.titulo)+'</p><small class="note">'+dataCurta(v.data)+' · toque para assistir</small>';
     b.querySelector('.fg-c').onclick=()=>{b.querySelector('.fg-c').outerHTML='<iframe class="fg-i" src="https://www.youtube-nocookie.com/embed/'+v.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="Meditação da Palavra"></iframe>';};
@@ -4074,13 +4098,45 @@ document.addEventListener('DOMContentLoaded',()=>{
       else{await renderLibrary();let modo=null;try{modo=localStorage.getItem('lector-modo');}catch(e){lxErr(e)}if(modo==='biblia'&&window.lucInfo)setTimeout(()=>window.lucInfo.abre(),60);}
     }catch(e){renderLibrary();}
     document.body.classList.remove('booting');
+    setTimeout(()=>{try{esAbre();}catch(e){}},900);   // essencial do dia, a cada abertura até ser confirmado
   });
 });
+/* ---------- Essencial do dia: ao abrir o app mostra liturgia, Evangelho e o vídeo do Frei Gilson.
+   Toque em "Visto" na 1ª vez; na abertura seguinte o botão pede a confirmação, e aí ele some de vez no dia. ---------- */
+const ES_KEY='lector-essencial';
+const esNovo=()=>({dia:dayKey(Date.now()),visto:false,confirmado:false});
+function esLe(){let s=null;try{s=JSON.parse(localStorage.getItem(ES_KEY)||'null');}catch(e){}return s&&s.dia===dayKey(Date.now())?s:esNovo();}
+function esGrava(s){try{localStorage.setItem(ES_KEY,JSON.stringify(s));}catch(e){}}
+function esFecha(){const el=$('#lx-essen');if(el)el.hidden=true;}
+let esLigado=false;
+function esWire(){if(esLigado)return;esLigado=true;
+  $('#lx-es-x').onclick=esFecha;
+  $('#lx-es-btn').onclick=()=>{const s=esLe(),card=$('#lx-es-card'),msg=$('#lx-es-msg');
+    if(!s.visto){s.visto=true;esGrava(s);msg.textContent='Visto! Abra o app de novo amanhã… ou hoje, para confirmar.';}
+    else{s.confirmado=true;esGrava(s);msg.textContent='Confirmado. Que Deus abençoe o seu dia 🙏';}
+    card.classList.remove('ok');void card.offsetWidth;card.classList.add('ok');
+    setTimeout(esFecha,1600);};}
+async function esAbre(){const s=esLe();if(s.confirmado)return;
+  esWire();
+  const corpo=$('#lx-es-corpo');$('#lx-essen').hidden=false;
+  $('#lx-es-card').classList.remove('ok');$('#lx-es-msg').textContent='';
+  $('#lx-es-txt').textContent=s.visto?'Confirmar que vimos':'Visto';
+  corpo.innerHTML='<p class="dia-st">Buscando o essencial de hoje…</p>';
+  let o=null;try{o=await diaBusca();}catch(e){o=null;}
+  const L=o&&o.lit,loc=liturgia(),ev=L&&L.leituras&&L.leituras.evangelho&&L.leituras.evangelho[0];
+  const txt=ev?ev.texto:(o&&o.ev),ref=ev?ev.referencia:(o&&o.evRef);
+  const curto=t=>{t=String(t||'').trim();if(t.length<=700)return t;const c=t.slice(0,700);return c.slice(0,c.lastIndexOf(' '))+'…';};
+  let h='<header class="es-cab" style="--c:'+loc.cor+'"><small>'+esc(dataLonga())+' · '+esc(loc.tempo)+'</small><h3>'+esc((L&&L.liturgia)||loc.festa||loc.tempo)+'</h3></header>';
+  h+=txt?'<p class="es-ref">Evangelho'+(ref?' · '+esc(ref):'')+'</p><div class="es-txt">'+diaP(curto(txt))+'</div>':'<p class="dia-st">Não consegui buscar as leituras agora.</p>';
+  h+='<div class="fg es-fg"><p class="ig-sec-t">Meditação da Palavra · Frei Gilson</p><div id="es-fg"><p class="dia-st">Buscando o vídeo de hoje…</p></div></div>';
+  corpo.innerHTML=h;
+  fgDesenha($('#es-fg'));}
 /* ---------- Voltar do celular: fecha a camada de cima (janela, livro, Escritura) em vez de fechar o app ---------- */
 try{history.replaceState({lx:0},'');history.pushState({lx:1},'');let saiu=0;
   addEventListener('popstate',()=>{
     const luc=$('#luc'),sh=document.querySelector('.sheet:not([hidden]):not(.gate)');
-    if(luc&&!luc.hidden&&window.lucInfo)window.lucInfo.fecha();
+    if(!$('#lx-essen').hidden)esFecha();
+    else if(luc&&!luc.hidden&&window.lucInfo)window.lucInfo.fecha();
     else if(sh)closeSheets();
     else if(cur)closeBook();
     else{if(Date.now()-saiu<2200){history.back();return;}saiu=Date.now();toast('Deslize de novo para sair');}
@@ -5197,5 +5253,15 @@ if('serviceWorker' in navigator&&location.port==='8765'){navigator.serviceWorker
 else if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(e=>console.warn('Lector · service worker:',e));});}
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>{if(!p)navigator.storage.persist();});}catch(e){}
 </script>
+<div id="lx-essen" hidden role="dialog" aria-modal="true" aria-label="Essencial do dia">
+  <div class="es-card" id="lx-es-card">
+    <div class="es-top"><span>Essencial do dia</span><button class="es-x" id="lx-es-x" aria-label="Fechar">×</button></div>
+    <div class="es-corpo" id="lx-es-corpo"></div>
+    <div class="es-foot">
+      <button class="es-btn" id="lx-es-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span id="lx-es-txt">Visto</span></button>
+      <p class="es-msg" id="lx-es-msg" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
