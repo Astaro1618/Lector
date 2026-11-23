@@ -480,7 +480,7 @@ mark.hl-o{background:none;color:inherit;padding:0;text-decoration:underline soli
 .ho-conv .nt-re{margin:0 0 10px}
 .textLayer .lx-pf{user-select:none;-webkit-user-select:none}
 body.sel-corpo .textLayer .lx-nota{user-select:none;-webkit-user-select:none}
-.hs-sem .ritmo{display:block;margin-top:3px;font-size:11.5px;color:var(--muted)}.hs-sem .ritmo.ok{color:#3b7a3b}
+.hs-sem .ritmo{display:block;margin-top:3px;font-size:11.5px;color:var(--muted)}.hs-sem .hs-tot{display:block;margin-top:5px;font-size:11.5px;color:var(--muted)}.hs-sem .hs-tot b{display:inline;font-size:12px;color:var(--ink);font-weight:600;margin:0}.hs-sem .ritmo.ok{color:#3b7a3b}
 .rx-row{display:flex;gap:2px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
 .rx-row button{border:0;background:transparent;font-size:17px;line-height:1;padding:5px 6px;border-radius:999px;cursor:pointer;filter:grayscale(.35);opacity:.7;transition:transform .12s,opacity .12s}
 .rx-row button:hover{opacity:1;filter:none;transform:scale(1.15)}
@@ -1433,11 +1433,14 @@ async function renderDia(){const el=$('#lx-dial');
 /* Meditação da Palavra (Frei Gilson): último vídeo do canal cujo título tem esse nome. Se não carregar, fica o link de busca. */
 const FG_CANAL='UCbh6_TmFnAJLI56aAQeD3qw',FG_BUSCA='https://www.youtube.com/results?search_query='+encodeURIComponent('Meditação da Palavra Frei Gilson')+'&sp=CAI%253D';
 async function fgVideo(){let c=null;try{c=JSON.parse(localStorage.getItem('lector-fg')||'null');}catch(e){}
-  if(c&&c.v&&Date.now()-c.t<3*3600000)return c.v;
-  const j=await (await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://www.youtube.com/feeds/videos.xml?channel_id='+FG_CANAL))).json();
-  const it=(j.items||[]).find(x=>/medita[cç][aã]o da palavra/i.test(x.title||''));if(!it)throw new Error('sem vídeo');
-  const id=(String(it.link||'').match(/[?&]v=([\w-]{11})/)||[])[1];if(!id)throw new Error('sem id');
-  const v={id,titulo:it.title,data:String(it.pubDate||'').replace(' ','T')};try{localStorage.setItem('lector-fg',JSON.stringify({t:Date.now(),v}));}catch(e){}return v;}
+  if(c&&c.v&&Date.now()-c.t<3600000)return c.v;   // guarda por 1 hora
+  try{
+    const h=Math.floor(Date.now()/3600000);   // muda a cada hora: o serviço que lê o canal não devolve a lista antiga
+    const j=await (await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://www.youtube.com/feeds/videos.xml?channel_id='+FG_CANAL+'&h='+h))).json();
+    const it=(j.items||[]).find(x=>/medita[cç][aã]o da palavra/i.test(x.title||''));if(!it)throw new Error('sem vídeo');
+    const id=(String(it.link||'').match(/[?&]v=([\w-]{11})/)||[])[1];if(!id)throw new Error('sem id');
+    const v={id,titulo:it.title,data:String(it.pubDate||'').replace(' ','T')};try{localStorage.setItem('lector-fg',JSON.stringify({t:Date.now(),v}));}catch(e){}return v;
+  }catch(e){if(c&&c.v)return c.v;throw e;}}   // se a busca falhar, mostra o último vídeo que deu certo
 async function fgDesenha(){const b=$('#lx-fg-b');if(!b)return;
   try{const v=await fgVideo();
     b.innerHTML='<button class="fg-c" aria-label="Assistir"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="fg-p">▶</span></button><p class="fg-t">'+esc(v.titulo)+'</p><small class="note">'+dataCurta(v.data)+' · toque para assistir</small>';
@@ -3317,11 +3320,13 @@ function desenhaHist(){
     for(const [d,ms] of Object.entries(r.days||{}))if(ms>=60000&&keyDate(d).getTime()>=desde-86400000&&sem[e.user_id])sem[e.user_id].livros.add(e.livro_id);
     for(const [d,n] of Object.entries(r.pg||{}))if(n>=1&&keyDate(d).getTime()>=desde-86400000){const s=(RIT[e.user_id]=RIT[e.user_id]||{ms:0,pg:0});s.pg+=n;s.ms+=(r.days||{})[d]||0;}
     for(const h of r.highlights||[])if(h.at>=desde&&h.note&&String(h.note).trim())(sem[e.user_id]=sem[e.user_id]||{ms:0,livros:new Set(),notas:0}).notas++;}
+  // total desde o começo (todas as leituras de cada pessoa, sem limite de data)
+  const vida={};for(const e of estados)for(const ms of Object.values((e.registro||{}).days||{}))if(ms>0)vida[e.user_id]=(vida[e.user_id]||0)+ms;
   const pessoas=[uid,outro].filter(Boolean);
   let html='<div class="hs-top">';
   if(fogo>=1)html+='<div class="hs-fogo">🔥 <b>'+fogo+(fogo===1?' dia':' dias seguidos')+'</b> em que vocês dois leram</div>';
   html+='<div class="hs-sem"><div class="hs-sem-t" style="border:0;padding:0">Últimos 7 dias</div>'+pessoas.map(q=>{const s=sem[q]||{ms:0,livros:new Set(),notas:0};
-    return '<div style="--c:'+corDe(q)+'"><b>'+nome(q)+'</b><strong>'+(s.ms?minutos(s.ms):'—')+'</strong>'+s.livros.size+(s.livros.size===1?' livro':' livros')+' · '+s.notas+(s.notas===1?' nota':' notas')+ritmo(RIT[q])+'</div>';}).join('')+'</div>';
+    return '<div style="--c:'+corDe(q)+'"><b>'+nome(q)+'</b><strong>'+(s.ms?minutos(s.ms):'—')+'</strong>'+s.livros.size+(s.livros.size===1?' livro':' livros')+' · '+s.notas+(s.notas===1?' nota':' notas')+ritmo(RIT[q])+'<small class="hs-tot">Desde o início: <b>'+(vida[q]?minutos(vida[q]):'—')+'</b></small></div>';}).join('')+'</div>';
   const F=[['tudo','Tudo'],['notas','Notas'],['outro',outro?esc(nm[outro]):'O outro'],['eu','Você']];
   html+='<div class="hs-filtros">'+F.map(([k,t])=>'<button data-filtro="'+k+'" aria-pressed="'+(HS_FILTRO===k)+'">'+t+'</button>').join('')+(matchMedia('(min-width:900px)').matches?engr():'')+'</div></div>';
   // ---- itens ----
